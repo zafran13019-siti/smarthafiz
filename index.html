@@ -6,8 +6,11 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1a7a4c">
-    <meta name="description" content="Smart Hafiz - Solusi Pintar Menghafal Al-Quran">
+    <meta name="description" content="Smart Hafiz - Solusi Pintar Menghafal Al-Quran dengan Auto Content dari Google Drive">
     <title>Smart Hafiz - Solusi Pintar Menghafal Al-Quran</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href='data:application/manifest+json,{"name":"Smart Hafiz - Auto Content","short_name":"SmartHafiz","start_url":".","display":"standalone","background_color":"#1a7a4c","theme_color":"#1a7a4c","orientation":"portrait","icons":[{"src":"data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%231a7a4c%22 width=%22100%22 height=%22100%22 rx=%2220%22/><text x=%2250%22 y=%2265%22 font-size=%2250%22 text-anchor=%22middle%22>📖</text></svg>","sizes":"192x192","type":"image/svg+xml"}]}'>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
@@ -177,7 +180,7 @@
         <div class="lock-subtitle">Solusi Pintar Menghafal Al-Quran</div>
         <div class="lock-input-group">
             <input type="password" class="lock-input" id="lockPassword" placeholder="Masukkan PIN" maxlength="6" autocomplete="off" inputmode="numeric">
-            <button class="lock-btn lock-btn-enter" onclick="enterApp()">🔓 Masuk</button>
+            <button class="lock-btn lock-btn-enter" onclick="enterApp()"> Masuk</button>
             <div class="lock-error" id="lockError"></div>
         </div>
         <div class="lock-hint">PIN default: 1234</div>
@@ -187,7 +190,7 @@
     <div id="mainApp">
         <div class="app-header">
             <div class="header-left">
-                <div class="header-logo">📖</div>
+                <div class="header-logo"></div>
                 <div>
                     <div class="header-title">Smart Hafiz</div>
                     <div class="header-subtitle">Auto Content dari Google Drive</div>
@@ -196,14 +199,14 @@
             <div class="header-right">
                 <button class="header-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
                 <button class="header-btn" onclick="forceRefresh()" title="Force Refresh">🔄</button>
-                <button class="header-btn" onclick="navigateTo('settings')" title="Pengaturan">⚙️</button>
+                <button class="header-btn" onclick="navigateTo('settings')" title="Pengaturan">️</button>
             </div>
         </div>
         <div class="app-content" id="appContent"></div>
         <div class="bottom-nav">
             <button class="nav-item active" onclick="navigateTo('home')" id="navHome"><span class="nav-icon">🏠</span><span class="nav-label">Beranda</span></button>
-            <button class="nav-item" onclick="navigateTo('mengaji')" id="navMengaji"><span class="nav-icon">📖</span><span class="nav-label">Mengaji</span></button>
-            <button class="nav-item" onclick="navigateTo('cerita')" id="navCerita"><span class="nav-icon">📚</span><span class="nav-label">Cerita</span></button>
+            <button class="nav-item" onclick="navigateTo('mengaji')" id="navMengaji"><span class="nav-icon"></span><span class="nav-label">Mengaji</span></button>
+            <button class="nav-item" onclick="navigateTo('cerita')" id="navCerita"><span class="nav-icon"></span><span class="nav-label">Cerita</span></button>
             <button class="nav-item" onclick="navigateTo('downloads')" id="navDownloads"><span class="nav-icon">💾</span><span class="nav-label">Download</span></button>
             <button class="nav-item" onclick="navigateTo('settings')" id="navSettings"><span class="nav-icon">⚙️</span><span class="nav-label">Lainnya</span></button>
         </div>
@@ -236,7 +239,7 @@
     <!-- PIN CHANGE MODAL -->
     <div id="pinModal">
         <div class="modal-box">
-            <h3>🔑 Ubah PIN</h3>
+            <h3> Ubah PIN</h3>
             <p>Masukkan PIN baru (4-6 digit)</p>
             <input type="password" class="modal-input" id="newPinInput" placeholder="PIN Baru" maxlength="6" inputmode="numeric">
             <div class="modal-buttons">
@@ -537,7 +540,7 @@
                             <h4>🔧 Debug Info</h4>
                             <p>${debugInfo}</p>
                             <button onclick="forceRefresh()">🔄 Force Refresh</button>
-                            <button onclick="clearAllCache()">️ Clear Cache</button>
+                            <button onclick="clearAllCache()">🗑️ Clear Cache</button>
                         </div>
                     ` : ''}
                     
@@ -651,7 +654,7 @@
             video.load();
             document.getElementById('videoPlayer').classList.add('active');
             video.play().catch(() => {
-                showToast('⚠️ Gagal memutar, coba unduh saja');
+                showToast('️ Gagal memutar, coba unduh saja');
                 closeVideo();
             });
             addHafizPoints(1);
@@ -734,7 +737,7 @@
                     <div class="page-title"><span class="icon">⚙️</span> Pengaturan</div>
                     <div class="settings-group">
                         <div class="settings-item" onclick="showPinModal()">
-                            <div class="settings-item-left"><div class="settings-item-icon" style="background:#e8f5e9; color:#2e7d32;">🔒</div><div class="settings-item-text"><h4>Ubah PIN</h4><p>Ganti PIN keluar aplikasi</p></div></div><span>›</span>
+                            <div class="settings-item-left"><div class="settings-item-icon" style="background:#e8f5e9; color:#2e7d32;"></div><div class="settings-item-text"><h4>Ubah PIN</h4><p>Ganti PIN keluar aplikasi</p></div></div><span>›</span>
                         </div>
                         <div class="settings-item" onclick="toggleKiosk()">
                             <div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd; color:#1565c0;">📱</div><div class="settings-item-text"><h4>Mode Kiosk</h4><p>Cegah keluar dari aplikasi</p></div></div>
@@ -809,7 +812,7 @@
                 document.getElementById('mainApp').classList.remove('active');
                 document.getElementById('lockScreen').classList.remove('hidden');
                 document.getElementById('lockPassword').value = '';
-                showToast('👋 Sampai jumpa!');
+                showToast(' Sampai jumpa!');
             } else {
                 showToast('❌ PIN salah!');
                 document.getElementById('exitPassword').value = '';
@@ -824,7 +827,7 @@
                 requestFullscreen();
                 showToast('Selamat datang di Smart Hafiz! 📖');
             } else {
-                document.getElementById('lockError').textContent = '❌ PIN salah, coba lagi';
+                document.getElementById('lockError').textContent = ' PIN salah, coba lagi';
                 document.getElementById('lockPassword').value = '';
                 setTimeout(() => { document.getElementById('lockError').textContent = ''; }, 2000);
             }
