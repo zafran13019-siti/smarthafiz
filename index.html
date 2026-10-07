@@ -8,10 +8,8 @@
     <meta name="theme-color" content="#1a7a4c">
     <title>Smart Hafiz</title>
     
-    <!-- Preconnect ke Google untuk percepat koneksi -->
-    <link rel="preconnect" href="https://script.google.com">
     <link rel="preconnect" href="https://drive.google.com">
-    <link rel="dns-prefetch" href="https://script.google.com">
+    <link rel="dns-prefetch" href="https://drive.google.com">
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
@@ -19,7 +17,6 @@
         :root { --primary: #1a7a4c; --primary-dark: #0d5c35; --secondary: #f0a500; --bg: #f0f2f5; --card-bg: #ffffff; --text: #333333; --text-light: #666666; --shadow: 0 2px 8px rgba(0,0,0,0.08); --radius: 12px; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
         
-        /* CRITICAL CSS - Inline untuk instant render */
         #lockScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #1a7a4c 0%, #0d5c35 50%, #1a7a4c 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; }
         #lockScreen.hidden { opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .lock-logo { width: 100px; height: 100px; background: white; border-radius: 25px; display: flex; align-items: center; justify-content: center; font-size: 50px; margin-bottom: 15px; }
@@ -41,13 +38,6 @@
         .app-content { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 10px; padding-bottom: 75px; width: 100%; -webkit-overflow-scrolling: touch; }
         .app-content::-webkit-scrollbar { width: 0; }
         .page-title { font-size: 18px; font-weight: bold; color: var(--primary-dark); margin-bottom: 10px; padding: 0 4px; }
-        
-        /* SKELETON LOADING - Tampil instant */
-        .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
-        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        .skeleton-card { height: 100px; border-radius: 12px; margin-bottom: 10px; }
-        .skeleton-text { height: 14px; margin-bottom: 8px; border-radius: 4px; }
-        .skeleton-text.short { width: 60%; }
         
         .category-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; width: 100%; }
         .category-card { background: var(--card-bg); border-radius: var(--radius); padding: 12px 8px; box-shadow: var(--shadow); cursor: pointer; text-align: center; transition: transform 0.15s; }
@@ -108,9 +98,6 @@
         .toast { position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: white; padding: 9px 18px; border-radius: 50px; font-size: 12px; z-index: 9999; opacity: 0; visibility: hidden; transition: opacity 0.25s, visibility 0.25s; white-space: nowrap; pointer-events: none; max-width: 85%; overflow: hidden; text-overflow: ellipsis; }
         .toast.show { opacity: 1; visibility: visible; }
         
-        .loading-minimal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); color: white; padding: 10px 20px; border-radius: 20px; font-size: 13px; z-index: 9998; opacity: 0; visibility: hidden; transition: opacity 0.2s; }
-        .loading-minimal.show { opacity: 1; visibility: visible; }
-        
         .empty-state { text-align: center; padding: 30px 15px; color: var(--text-light); }
         .empty-icon { font-size: 40px; margin-bottom: 10px; }
         
@@ -123,14 +110,17 @@
         .settings-item-text h4 { font-size: 12px; }
         .settings-item-text p { font-size: 9px; color: var(--text-light); }
         
+        .sync-status { position: fixed; top: 60px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 4px 10px; border-radius: 12px; font-size: 10px; z-index: 100; opacity: 0; transition: opacity 0.3s; }
+        .sync-status.show { opacity: 1; }
+        
         @media (min-width: 500px) { .category-grid { grid-template-columns: repeat(3, 1fr); } .app-content { max-width: 600px; margin: 0 auto; } }
     </style>
 </head>
 <body>
 
-    <!-- LOCK SCREEN - Tampil instant -->
+    <!-- LOCK SCREEN -->
     <div id="lockScreen">
-        <div class="lock-logo"></div>
+        <div class="lock-logo">📖</div>
         <div class="lock-title">Smart Hafiz</div>
         <div class="lock-subtitle">Streaming Tanpa Login</div>
         <input type="password" class="lock-input" id="lockPassword" placeholder="PIN (1234)" maxlength="6" inputmode="numeric">
@@ -138,41 +128,27 @@
         <div style="color: rgba(255,255,255,0.5); font-size: 11px; margin-top: 15px;">PIN: 1234</div>
     </div>
 
-    <!-- MAIN APP - Skeleton loading -->
+    <!-- SYNC STATUS INDICATOR -->
+    <div class="sync-status" id="syncStatus"></div>
+
+    <!-- MAIN APP -->
     <div id="mainApp">
         <div class="app-header">
             <div class="header-left">
                 <div class="header-logo">📖</div>
                 <div style="min-width: 0; flex: 1;">
                     <div class="header-title">Smart Hafiz</div>
-                    <div class="header-subtitle" id="headerStatus">Memuat...</div>
+                    <div class="header-subtitle" id="headerStatus">Ready</div>
                 </div>
             </div>
             <div class="header-right">
-                <button class="header-btn" onclick="forceRefresh()">🔄</button>
-                <button class="header-btn" onclick="navigateTo('settings')">⚙️</button>
+                <button class="header-btn" onclick="syncFromDrive()" title="Sync">🔄</button>
+                <button class="header-btn" onclick="navigateTo('settings')" title="Settings">⚙️</button>
             </div>
         </div>
-        <div class="app-content" id="appContent">
-            <!-- SKELETON - Tampil instant saat masuk -->
-            <div id="skeletonView">
-                <div class="storage-info">
-                    <div class="skeleton" style="height: 16px; width: 40%; margin-bottom: 8px;"></div>
-                    <div class="skeleton" style="height: 24px; width: 60%;"></div>
-                </div>
-                <div class="skeleton" style="height: 18px; width: 30%; margin-bottom: 10px;"></div>
-                <div class="category-grid">
-                    <div class="skeleton skeleton-card"></div>
-                    <div class="skeleton skeleton-card"></div>
-                    <div class="skeleton skeleton-card"></div>
-                    <div class="skeleton skeleton-card"></div>
-                    <div class="skeleton skeleton-card"></div>
-                    <div class="skeleton skeleton-card"></div>
-                </div>
-            </div>
-        </div>
+        <div class="app-content" id="appContent"></div>
         <div class="bottom-nav">
-            <button class="nav-item active" onclick="navigateTo('home')" id="navHome"><span class="nav-icon">🏠</span><span class="nav-label">Beranda</span></button>
+            <button class="nav-item active" onclick="navigateTo('home')" id="navHome"><span class="nav-icon"></span><span class="nav-label">Beranda</span></button>
             <button class="nav-item" onclick="navigateTo('category', {category: 'mengaji'})" id="navMengaji"><span class="nav-icon">📖</span><span class="nav-label">Mengaji</span></button>
             <button class="nav-item" onclick="navigateTo('category', {category: 'cerita'})" id="navCerita"><span class="nav-icon">📚</span><span class="nav-label">Cerita</span></button>
             <button class="nav-item" onclick="navigateTo('downloads')" id="navDownloads"><span class="nav-icon">💾</span><span class="nav-label">Download</span></button>
@@ -184,7 +160,7 @@
     <div id="streamingPlayer">
         <div class="player-header">
             <div class="player-title" id="playerTitle">Judul Video</div>
-            <button class="player-btn" onclick="toggleFullscreen()"></button>
+            <button class="player-btn" onclick="toggleFullscreen()">⛶</button>
             <button class="player-btn" onclick="closePlayer()">✕</button>
         </div>
         <div class="player-container">
@@ -193,14 +169,59 @@
     </div>
 
     <div class="toast" id="toast"></div>
-    <div class="loading-minimal" id="loadingMinimal">⏳ Memuat...</div>
 
     <script>
         // ===== KONFIGURASI =====
         const CONFIG = {
             pin: localStorage.getItem('smartHafizPIN') || '1234',
-            driveScriptUrl: 'https://script.google.com/macros/s/AKfycbztHEosCVhPgBmmNkrP5QFjkCixNeQQO5RquR1t-w0eklc4KwnPc3fvH3HOTkdbFN-Nrg/exec',
-            cacheExpiry: 2 * 60 * 60 * 1000 // 2 jam (lebih lama = lebih cepat)
+            driveScriptUrl: 'https://script.google.com/macros/s/AKfycbztHEosCVhPgBmmNkrP5QFjkCixNeQQO5RquR1t-w0eklc4KwnPc3fvH3HOTkdbFN-Nrg/exec'
+        };
+
+        // ===== EMBEDDED DATA - INSTANT LOAD! =====
+        // Data ini di-generate dari Google Apps Script, copy-paste di sini saat update
+        const EMBEDDED_DATA = {
+            "mengaji": {
+                "title": "MENGAJI YUK",
+                "icon": "📖",
+                "color": "#1a7a4c",
+                "totalVideos": 0,
+                "folders": {}
+            },
+            "cerita": {
+                "title": "CERITA",
+                "icon": "📚",
+                "color": "#7b1fa2",
+                "totalVideos": 0,
+                "folders": {}
+            },
+            "lagu": {
+                "title": "MENYANYI YUK",
+                "icon": "🎵",
+                "color": "#e65100",
+                "totalVideos": 0,
+                "folders": {}
+            },
+            "film": {
+                "title": "FILM",
+                "icon": "",
+                "color": "#c62828",
+                "totalVideos": 0,
+                "folders": {}
+            },
+            "akhlaq": {
+                "title": "AKHLAQ TERPUJI",
+                "icon": "🌸",
+                "color": "#ad1457",
+                "totalVideos": 0,
+                "folders": {}
+            },
+            "pengetahuan": {
+                "title": "PENGETAHUAN",
+                "icon": "🧠",
+                "color": "#1565c0",
+                "totalVideos": 0,
+                "folders": {}
+            }
         };
 
         // ===== STATE =====
@@ -211,68 +232,93 @@
         let currentFolder = null;
         let downloadedVideos = JSON.parse(localStorage.getItem('downloadedVideos') || '[]');
         let toastTimeout = null;
-        let dataLoaded = false;
+        let dataReady = false;
 
-        // ===== INIT - CEPAT! =====
+        // ===== INIT - INSTANT! =====
         document.addEventListener('DOMContentLoaded', function() {
-            // 1. Tampilkan skeleton INSTANT (tidak nunggu data)
+            // 1. Load data INSTANT dari localStorage atau embedded
+            loadDataInstant();
+            
+            // 2. Setup lock screen
             document.getElementById('lockPassword').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') enterApp();
             });
             document.getElementById('lockPassword').focus();
             
-            // 2. Preload data di background (tidak blocking UI)
-            preloadData();
+            // 3. Background sync (tidak blocking)
+            setTimeout(() => syncFromDrive(true), 1000);
         });
 
-        // ===== PRELOAD DATA - Background loading =====
-        async function preloadData() {
-            try {
-                const cached = localStorage.getItem('smartHafizContent');
-                const cachedTime = parseInt(localStorage.getItem('smartHafizContentTime') || '0');
-                const now = Date.now();
-                
-                // Jika cache masih valid (< 2 jam), pakai langsung
-                if (cached && (now - cachedTime) < CONFIG.cacheExpiry) {
+        // ===== LOAD DATA INSTANT =====
+        function loadDataInstant() {
+            const cached = localStorage.getItem('smartHafizContent');
+            if (cached) {
+                try {
                     CONTENT = JSON.parse(cached);
-                    dataLoaded = true;
-                    console.log('✅ Cache hit - instant load');
+                    dataReady = true;
+                    console.log('✅ Loaded from cache instantly');
                     updateHeaderStatus('✅ Data siap');
                     return;
+                } catch(e) {
+                    console.warn('Cache corrupt, using embedded');
                 }
-                
-                // Fetch di background dengan timeout
+            }
+            
+            // Fallback ke embedded data
+            CONTENT = JSON.parse(JSON.stringify(EMBEDDED_DATA));
+            dataReady = true;
+            console.log('✅ Using embedded data');
+            updateHeaderStatus('📦 Data lokal');
+        }
+
+        // ===== BACKGROUND SYNC =====
+        async function syncFromDrive(silent = false) {
+            if (!silent) showSyncStatus('🔄 Syncing...');
+            
+            try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 detik timeout
+                const timeoutId = setTimeout(() => controller.abort(), 20000);
                 
-                try {
-                    const response = await fetch(CONFIG.driveScriptUrl, { 
-                        signal: controller.signal,
-                        cache: 'no-store'
-                    });
-                    clearTimeout(timeoutId);
-                    const result = await response.json();
+                const response = await fetch(CONFIG.driveScriptUrl, { 
+                    signal: controller.signal,
+                    cache: 'no-store'
+                });
+                clearTimeout(timeoutId);
+                
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    CONTENT = result.data;
+                    localStorage.setItem('smartHafizContent', JSON.stringify(CONTENT));
+                    dataReady = true;
                     
-                    if (result.success && result.data) {
-                        CONTENT = result.data;
-                        localStorage.setItem('smartHafizContent', JSON.stringify(CONTENT));
-                        localStorage.setItem('smartHafizContentTime', now.toString());
-                        dataLoaded = true;
-                        console.log('✅ Data loaded:', result.totalVideos, 'videos');
-                        updateHeaderStatus(`✅ ${result.totalVideos} video`);
-                    }
-                } catch (fetchError) {
-                    console.warn('⚠️ Fetch gagal, pakai cache lama');
-                    if (cached) {
-                        CONTENT = JSON.parse(cached);
-                        dataLoaded = true;
-                        updateHeaderStatus('⚠️ Data lama');
-                    }
+                    const total = countTotalVideos();
+                    updateHeaderStatus(`✅ ${total} video`);
+                    showSyncStatus(`✅ ${total} video synced`);
+                    
+                    // Re-render jika sedang di home
+                    if (currentPage === 'home') renderHome();
+                    else if (currentPage === 'category') renderCategory(currentCategory);
+                    else if (currentPage === 'folder') renderFolder(currentCategory, currentFolder);
+                    
+                    if (!silent) showToast(`✅ ${total} video di-sync!`);
                 }
             } catch (error) {
-                console.error('❌ Preload error:', error);
-                updateHeaderStatus(' Error');
+                console.warn('⚠️ Sync failed:', error.message);
+                showSyncStatus('⚠️ Sync gagal');
+                if (!silent) showToast('⚠️ Sync gagal, pakai data lokal');
             }
+            
+            setTimeout(() => hideSyncStatus(), 3000);
+        }
+
+        function showSyncStatus(msg) {
+            const el = document.getElementById('syncStatus');
+            el.textContent = msg;
+            el.classList.add('show');
+        }
+        function hideSyncStatus() {
+            document.getElementById('syncStatus').classList.remove('show');
         }
 
         function updateHeaderStatus(status) {
@@ -280,43 +326,24 @@
             if (el) el.textContent = status;
         }
 
-        function showLoadingMinimal(msg) {
-            const el = document.getElementById('loadingMinimal');
-            el.textContent = msg || '⏳ Memuat...';
-            el.classList.add('show');
-            setTimeout(() => el.classList.remove('show'), 2000);
+        function countTotalVideos() {
+            let count = 0;
+            for (let key in CONTENT) {
+                if (CONTENT[key].totalVideos) count += CONTENT[key].totalVideos;
+                else if (CONTENT[key].folders) {
+                    for (let f in CONTENT[key].folders) count += CONTENT[key].folders[f].items.length;
+                }
+            }
+            return count;
         }
 
-        // ===== NAVIGASI CEPAT =====
+        // ===== NAVIGASI =====
         function enterApp() {
             if (document.getElementById('lockPassword').value === CONFIG.pin) {
                 document.getElementById('lockScreen').classList.add('hidden');
                 document.getElementById('mainApp').classList.add('active');
-                
-                // Jika data sudah loaded, render langsung
-                if (dataLoaded) {
-                    renderHome();
-                    showToast('✅ Selamat datang!');
-                } else {
-                    // Tunggu data selesai load
-                    showLoadingMinimal('⏳ Memuat data...');
-                    const checkInterval = setInterval(() => {
-                        if (dataLoaded) {
-                            clearInterval(checkInterval);
-                            renderHome();
-                            showToast('✅ Data siap!');
-                        }
-                    }, 200);
-                    
-                    // Fallback 10 detik
-                    setTimeout(() => {
-                        clearInterval(checkInterval);
-                        if (!dataLoaded) {
-                            renderHome();
-                            showToast('⚠️ Mode terbatas');
-                        }
-                    }, 10000);
-                }
+                renderHome();
+                showToast('✅ Selamat datang!');
             } else {
                 showToast('❌ PIN salah');
                 document.getElementById('lockPassword').value = '';
@@ -324,22 +351,6 @@
         }
 
         function navigateTo(page, data) {
-            // Pastikan data loaded sebelum navigasi
-            if (!dataLoaded && page !== 'settings' && page !== 'downloads') {
-                showLoadingMinimal(' Memuat data...');
-                const checkInterval = setInterval(() => {
-                    if (dataLoaded) {
-                        clearInterval(checkInterval);
-                        doNavigate(page, data);
-                    }
-                }, 100);
-                setTimeout(() => clearInterval(checkInterval), 8000);
-                return;
-            }
-            doNavigate(page, data);
-        }
-
-        function doNavigate(page, data) {
             navigationStack.push({ page: currentPage, category: currentCategory, folder: currentFolder });
             currentPage = page;
             updateNavActive();
@@ -385,7 +396,7 @@
             if (navId) document.getElementById(navId).classList.add('active');
         }
 
-        // ===== RENDER OPTIMIZED =====
+        // ===== RENDER =====
         function renderHome() {
             navigationStack = [];
             currentCategory = null;
@@ -417,7 +428,7 @@
                     <div style="font-size: 10px; opacity: 0.9;">${downloadedVideos.length} dari ${totalVideos} video</div>
                 </div>
                 <div class="page-title">Menu Utama</div>
-                <div class="category-grid">${categoryHTML || '<div class="empty-state"><div class="empty-icon"></div><p>Memuat kategori...</p></div>'}</div>`;
+                <div class="category-grid">${categoryHTML || '<div class="empty-state"><div class="empty-icon">📦</div><p>Data lokal aktif. Klik  untuk sync.</p></div>'}</div>`;
         }
 
         function renderCategory(categoryKey) {
@@ -454,12 +465,7 @@
             const folder = category.folders[folderName];
             const items = folder.items || [];
             
-            // Lazy render - hanya render 50 video pertama, load more on scroll
-            const maxInitial = 50;
-            const initialItems = items.slice(0, maxInitial);
-            const hasMore = items.length > maxInitial;
-            
-            let videosHTML = initialItems.map((item) => {
+            let videosHTML = items.map((item) => {
                 const isSaved = downloadedVideos.includes(item.driveId);
                 return `<div class="video-item" onclick="navigateTo('videoDetail', {category: '${categoryKey}', folder: '${folderName.replace(/'/g, "\\'")}', itemId: '${item.id}'})">
                     <div class="video-thumb" style="background:${category.color || '#1a7a4c'};">🎬</div>
@@ -470,12 +476,6 @@
                     <span style="font-size: 16px; color: var(--text-light);">›</span>
                 </div>`;
             }).join('');
-            
-            if (hasMore) {
-                videosHTML += `<div style="text-align: center; padding: 15px; color: var(--text-light); font-size: 12px;">
-                    + ${items.length - maxInitial} video lagi (scroll untuk load)
-                </div>`;
-            }
 
             document.getElementById('appContent').innerHTML = `
                 <button class="back-btn" onclick="navigateTo('category', {category: '${categoryKey}'})">← Kembali</button>
@@ -484,9 +484,9 @@
                     <span onclick="navigateTo('category', {category: '${categoryKey}'})">${category.title}</span> / 
                     ${folderName}
                 </div>
-                <div class="page-title">📁 ${folderName}</div>
+                <div class="page-title"> ${folderName}</div>
                 <div style="font-size: 11px; color: var(--text-light); margin-bottom: 10px; padding: 0 4px;">📊 ${items.length} video</div>
-                <div class="video-list">${videosHTML}</div>`;
+                <div class="video-list">${videosHTML || '<div class="empty-state"><p>Belum ada video</p></div>'}</div>`;
         }
 
         function showVideoDetail(categoryKey, folderName, itemId) {
@@ -510,11 +510,11 @@
                 <div class="video-detail-card">
                     <div class="video-detail-icon">🎬</div>
                     <h3 class="video-detail-title">${item.name}</h3>
-                    <div class="video-folder-tag">📁 ${item.folder || folderName}</div>
+                    <div class="video-folder-tag"> ${item.folder || folderName}</div>
                     <p class="video-detail-desc">${item.desc || 'Video edukasi Islami'}</p>
-                    ${item.size ? `<div class="video-size-badge">📦 ${item.size}</div>` : ''}
+                    ${item.size ? `<div class="video-size-badge"> ${item.size}</div>` : ''}
                     <button class="btn-action btn-primary" onclick="streamVideo('${driveId}', '${safeName}')">▶️ Streaming Langsung</button>
-                    <button class="btn-action btn-secondary" onclick="downloadVideo('${driveId}', '${safeName}')">️ Download</button>
+                    <button class="btn-action btn-secondary" onclick="downloadVideo('${driveId}', '${safeName}')">⬇️ Download</button>
                     <button class="btn-action btn-download ${isSaved ? 'downloaded' : ''}" onclick="${isSaved ? `deleteVideo('${driveId}', '${safeName}', '${categoryKey}', '${safeFolder}')` : `addToDownloadedList('${driveId}', '${safeName}')`}">${isSaved ? '✓ Tersimpan (Hapus)' : '📥 Simpan ke Daftar'}</button>
                 </div>`;
         }
@@ -562,7 +562,7 @@
         }
 
         function renderDownloads() {
-            let html = '<button class="back-btn" onclick="goBack()">← Kembali</button><div class="page-title">💾 Video Tersimpan</div>';
+            let html = '<button class="back-btn" onclick="goBack()">← Kembali</button><div class="page-title"> Video Tersimpan</div>';
             if (downloadedVideos.length === 0) {
                 html += `<div class="empty-state"><div class="empty-icon">📭</div><h3>Belum ada</h3><p>Klik "Download"</p></div>`;
             } else {
@@ -599,13 +599,13 @@
         function renderSettings() {
             document.getElementById('appContent').innerHTML = `
                 <button class="back-btn" onclick="goBack()">← Kembali</button>
-                <div class="page-title">️ Pengaturan</div>
+                <div class="page-title">⚙️ Pengaturan</div>
                 <div class="settings-group">
-                    <div class="settings-item" onclick="forceRefresh()">
-                        <div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0; color:#e65100;">🔄</div><div class="settings-item-text"><h4>Refresh Konten</h4><p>Update dari Drive</p></div></div><span>›</span>
+                    <div class="settings-item" onclick="syncFromDrive()">
+                        <div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0; color:#e65100;"></div><div class="settings-item-text"><h4>Sync dari Drive</h4><p>Update data terbaru</p></div></div><span>›</span>
                     </div>
                     <div class="settings-item" onclick="navigateTo('downloads')">
-                        <div class="settings-item-left"><div class="settings-item-icon" style="background:#f3e5f5; color:#7b1fa2;"></div><div class="settings-item-text"><h4>Download</h4><p>${downloadedVideos.length} video</p></div></div><span>›</span>
+                        <div class="settings-item-left"><div class="settings-item-icon" style="background:#f3e5f5; color:#7b1fa2;">💾</div><div class="settings-item-text"><h4>Download</h4><p>${downloadedVideos.length} video</p></div></div><span>›</span>
                     </div>
                     <div class="settings-item" onclick="clearAllDownloads()">
                         <div class="settings-item-left"><div class="settings-item-icon" style="background:#ffebee; color:#c62828;">🗑️</div><div class="settings-item-text"><h4>Hapus Semua</h4><p>Reset download</p></div></div><span>›</span>
@@ -614,38 +614,25 @@
                         <div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd; color:#1565c0;">🗑️</div><div class="settings-item-text"><h4>Clear Cache</h4><p>Hapus cache data</p></div></div><span>›</span>
                     </div>
                 </div>
-                <div style="text-align:center; padding:14px; color:var(--text-light); font-size:10px;">Smart Hafiz v5.0<br>Optimized Performance<br>© 2024</div>`;
-        }
-
-        function forceRefresh() {
-            showLoadingMinimal('🔄 Refreshing...');
-            localStorage.removeItem('smartHafizContent');
-            localStorage.removeItem('smartHafizContentTime');
-            dataLoaded = false;
-            preloadData().then(() => {
-                if (currentPage === 'home') renderHome();
-                showToast('✅ Refreshed');
-            });
+                <div style="text-align:center; padding:14px; color:var(--text-light); font-size:10px;">Smart Hafiz v6.0<br>Instant Load Technology<br>© 2024</div>`;
         }
 
         function clearCache() {
-            if (confirm('Hapus cache?')) {
+            if (confirm('Hapus cache? Data akan di-reload dari embedded.')) {
                 localStorage.removeItem('smartHafizContent');
-                localStorage.removeItem('smartHafizContentTime');
+                CONTENT = JSON.parse(JSON.stringify(EMBEDDED_DATA));
                 showToast('🗑️ Cache dihapus');
+                if (currentPage === 'home') renderHome();
             }
         }
 
         // ===== UTILITIES =====
-        function setupEventListeners() {
+        history.pushState(null, null, location.href);
+        window.addEventListener('popstate', () => {
             history.pushState(null, null, location.href);
-            window.addEventListener('popstate', () => {
-                history.pushState(null, null, location.href);
-                if (currentPage !== 'home') goBack();
-            });
-            document.addEventListener('contextmenu', e => e.preventDefault());
-        }
-        setupEventListeners();
+            if (currentPage !== 'home') goBack();
+        });
+        document.addEventListener('contextmenu', e => e.preventDefault());
 
         function showToast(message) {
             const toast = document.getElementById('toast');
