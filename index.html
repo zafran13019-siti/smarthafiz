@@ -92,8 +92,28 @@
         .storage-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.3); border-radius: 4px; margin: 10px 0; overflow: hidden; }
         .storage-fill { height: 100%; background: white; border-radius: 4px; transition: width 0.5s; }
         
-        .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(100px); background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 50px; font-size: 14px; z-index: 8000; transition: transform 0.3s; white-space: nowrap; }
-        .toast.show { transform: translateX(-50%) translateY(0); }
+        /* TOAST - FIXED */
+        .toast { 
+            position: fixed; 
+            bottom: 90px; 
+            left: 50%; 
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.85); 
+            color: white; 
+            padding: 12px 24px; 
+            border-radius: 50px; 
+            font-size: 14px; 
+            z-index: 9999; 
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+        .toast.show { 
+            opacity: 1;
+            visibility: visible;
+        }
         
         .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
         .loading-overlay.hidden { display: none; }
@@ -145,7 +165,7 @@
             </div>
             <div class="header-right">
                 <button class="header-btn" onclick="forceRefresh()" title="Refresh">🔄</button>
-                <button class="header-btn" onclick="navigateTo('settings')" title="Settings">⚙️</button>
+                <button class="header-btn" onclick="navigateTo('settings')" title="Settings">️</button>
             </div>
         </div>
         
@@ -157,7 +177,7 @@
                 <span class="nav-label">Beranda</span>
             </button>
             <button class="nav-item" onclick="navigateTo('mengaji')" id="navMengaji">
-                <span class="nav-icon">📖</span>
+                <span class="nav-icon"></span>
                 <span class="nav-label">Mengaji</span>
             </button>
             <button class="nav-item" onclick="navigateTo('cerita')" id="navCerita">
@@ -175,7 +195,7 @@
         </div>
     </div>
 
-    <!-- STREAMING PLAYER - IFRAME EMBED -->
+    <!-- STREAMING PLAYER -->
     <div id="streamingPlayer">
         <div class="player-header">
             <div class="player-title" id="playerTitle">Judul Video</div>
@@ -187,6 +207,7 @@
         </div>
     </div>
 
+    <!-- TOAST - FIXED VERSION -->
     <div class="toast" id="toast"></div>
 
     <script>
@@ -201,6 +222,7 @@
         let currentPage = 'home';
         let navigationStack = [];
         let downloadedVideos = JSON.parse(localStorage.getItem('downloadedVideos') || '[]');
+        let toastTimeout = null;
 
         // ===== INIT =====
         document.addEventListener('DOMContentLoaded', function() {
@@ -402,7 +424,7 @@
                     `;
                 }).join('');
             } else {
-                itemsHTML = `<div class="empty-state"><div class="empty-icon">📭</div><p>Belum ada video di kategori ini</p></div>`;
+                itemsHTML = `<div class="empty-state"><div class="empty-icon"></div><p>Belum ada video di kategori ini</p></div>`;
             }
 
             document.getElementById('appContent').innerHTML = `
@@ -445,7 +467,7 @@
                     </button>
                     
                     <button class="btn-action btn-download ${isDownloaded ? 'downloaded' : ''}" 
-                            onclick="${isDownloaded ? `deleteVideo('${driveId}', '${item.name.replace(/'/g, "\\'")}')` : `downloadVideo('${driveId}', '${item.name.replace(/'/g, "\\'")}')`}">
+                            onclick="${isDownloaded ? `deleteVideo('${driveId}', '${item.name.replace(/'/g, "\\'")}')` : `addToDownloadedList('${driveId}', '${item.name.replace(/'/g, "\\'")}')`}">
                         ${isDownloaded ? '✓ Sudah Tersimpan (Hapus)' : '📥 Simpan ke Daftar'}
                     </button>
                     
@@ -460,11 +482,8 @@
         function streamVideo(driveId, title) {
             document.getElementById('playerTitle').textContent = title;
             const iframe = document.getElementById('playerIframe');
-            
-            // Gunakan Google Drive preview URL (tidak perlu login jika video public)
             const embedUrl = `https://drive.google.com/file/d/${driveId}/preview`;
             iframe.src = embedUrl;
-            
             document.getElementById('streamingPlayer').classList.add('active');
             showToast('▶️ Streaming dimulai...');
         }
@@ -488,20 +507,24 @@
         function downloadVideo(driveId, name) {
             const downloadUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
             window.open(downloadUrl, '_blank');
-            
+            addToDownloadedList(driveId, name);
+        }
+
+        function addToDownloadedList(driveId, name) {
             if (!downloadedVideos.includes(driveId)) {
                 downloadedVideos.push(driveId);
                 localStorage.setItem('downloadedVideos', JSON.stringify(downloadedVideos));
+                showToast(`✅ ${name} ditambahkan ke daftar`);
+            } else {
+                showToast('ℹ️ Sudah ada di daftar');
             }
-            
-            showToast(`⬇️ Memulai download: ${name}`);
         }
 
         function deleteVideo(driveId, name) {
             if (confirm(`Hapus "${name}" dari daftar tersimpan?`)) {
                 downloadedVideos = downloadedVideos.filter(id => id !== driveId);
                 localStorage.setItem('downloadedVideos', JSON.stringify(downloadedVideos));
-                showToast('️ Video dihapus');
+                showToast('🗑️ Video dihapus');
                 
                 const prevPage = navigationStack[navigationStack.length - 2];
                 if (prevPage && prevPage.data) {
@@ -531,7 +554,7 @@
                             videoInfo = { 
                                 name: item.name, 
                                 category: CONTENT[catKey].title,
-                                icon: CONTENT[catKey].icon || '🎬'
+                                icon: CONTENT[catKey].icon || ''
                             };
                             break;
                         }
@@ -574,7 +597,7 @@
         function renderSettings() {
             document.getElementById('appContent').innerHTML = `
                 <button class="back-btn" onclick="goBack()">← Kembali</button>
-                <div class="page-title">️ Pengaturan</div>
+                <div class="page-title">⚙️ Pengaturan</div>
                 <div class="settings-group">
                     <div class="settings-item" onclick="forceRefresh()">
                         <div class="settings-item-left">
@@ -632,6 +655,7 @@
                 document.getElementById('lockScreen').classList.add('hidden');
                 document.getElementById('mainApp').classList.add('active');
                 renderHome();
+                // Toast welcome - akan hilang otomatis
                 showToast('Selamat datang di Smart Hafiz! 📖');
             } else {
                 showToast('❌ PIN salah');
@@ -639,11 +663,29 @@
             }
         }
 
+        // ===== TOAST - FIXED VERSION =====
         function showToast(message) {
             const toast = document.getElementById('toast');
+            
+            // Clear timeout sebelumnya jika ada
+            if (toastTimeout) {
+                clearTimeout(toastTimeout);
+                toastTimeout = null;
+            }
+            
+            // Set pesan
             toast.textContent = message;
+            
+            // Tampilkan dengan forced reflow
+            toast.classList.remove('show');
+            void toast.offsetWidth; // Force reflow
             toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
+            
+            // Hilangkan setelah 2.5 detik
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+                toastTimeout = null;
+            }, 2500);
         }
     </script>
 </body>
