@@ -2,16 +2,16 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1a7a4c">
     <title>Smart Hafiz - Streaming Tanpa Login</title>
-    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
-        :root { --primary: #1a7a4c; --primary-dark: #0d5c35; --secondary: #f0a500; --bg: #f5f5f5; --card-bg: #ffffff; --text: #333333; --text-light: #666666; --shadow: 0 4px 15px rgba(0,0,0,0.1); --radius: 16px; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; width: 100vw; position: fixed; }
+        html, body { width: 100%; height: 100%; overflow: hidden; position: fixed; top: 0; left: 0; }
+        :root { --primary: #1a7a4c; --primary-dark: #0d5c35; --secondary: #f0a500; --bg: #f0f2f5; --card-bg: #ffffff; --text: #333333; --text-light: #666666; --shadow: 0 2px 8px rgba(0,0,0,0.08); --radius: 12px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
         
         #lockScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #1a7a4c 0%, #0d5c35 50%, #1a7a4c 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; }
         #lockScreen.hidden { opacity: 0; pointer-events: none; }
@@ -19,52 +19,64 @@
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
         .lock-title { color: white; font-size: 28px; font-weight: bold; margin-bottom: 5px; }
         .lock-subtitle { color: rgba(255,255,255,0.8); font-size: 14px; margin-bottom: 30px; }
-        .lock-input { width: 250px; padding: 15px 20px; border: none; border-radius: 50px; font-size: 18px; text-align: center; margin-bottom: 15px; outline: none; }
+        .lock-input { width: 80%; max-width: 280px; padding: 15px 20px; border: none; border-radius: 50px; font-size: 18px; text-align: center; margin-bottom: 15px; outline: none; }
         .lock-btn { padding: 12px 40px; border: none; border-radius: 50px; font-size: 16px; font-weight: bold; background: var(--secondary); color: white; cursor: pointer; }
-        .lock-btn:active { transform: scale(0.95); }
         
-        #mainApp { display: none; height: 100vh; flex-direction: column; }
+        #mainApp { display: none; height: 100vh; height: 100dvh; flex-direction: column; width: 100%; }
         #mainApp.active { display: flex; }
-        .app-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-        .header-left { display: flex; align-items: center; gap: 10px; }
-        .header-logo { width: 36px; height: 36px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .app-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.2); width: 100%; flex-shrink: 0; }
+        .header-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+        .header-logo { width: 36px; height: 36px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
         .header-title { font-size: 18px; font-weight: bold; }
         .header-subtitle { font-size: 10px; opacity: 0.8; }
-        .header-right { display: flex; gap: 8px; }
-        .header-btn { width: 36px; height: 36px; border: none; border-radius: 50%; background: rgba(255,255,255,0.2); color: white; font-size: 18px; cursor: pointer; }
-        .header-btn:active { background: rgba(255,255,255,0.4); }
+        .header-right { display: flex; gap: 8px; flex-shrink: 0; }
+        .header-btn { width: 36px; height: 36px; border: none; border-radius: 50%; background: rgba(255,255,255,0.2); color: white; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         
-        .app-content { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 80px; }
+        .app-content { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px; padding-bottom: 80px; width: 100%; -webkit-overflow-scrolling: touch; }
         .app-content::-webkit-scrollbar { width: 0; }
-        .page-title { font-size: 22px; font-weight: bold; color: var(--primary-dark); margin-bottom: 16px; }
+        .page-title { font-size: 20px; font-weight: bold; color: var(--primary-dark); margin-bottom: 12px; padding: 0 4px; display: flex; align-items: center; gap: 8px; }
+        .breadcrumb { font-size: 12px; color: var(--text-light); margin-bottom: 8px; padding: 0 4px; }
+        .breadcrumb span { cursor: pointer; color: var(--primary); }
+        .breadcrumb span:hover { text-decoration: underline; }
         
-        .category-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
-        .category-card { background: var(--card-bg); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); cursor: pointer; text-align: center; transition: all 0.3s; }
-        .category-card:active { transform: scale(0.95); }
-        .category-icon { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 10px; }
-        .category-name { font-size: 13px; font-weight: 600; }
-        .category-count { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+        .category-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; width: 100%; }
+        .category-card { background: var(--card-bg); border-radius: var(--radius); padding: 14px 10px; box-shadow: var(--shadow); cursor: pointer; text-align: center; transition: all 0.2s; }
+        .category-card:active { transform: scale(0.97); }
+        .category-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 8px; color: white; }
+        .category-name { font-size: 12px; font-weight: 600; line-height: 1.3; }
+        .category-count { font-size: 10px; color: var(--text-light); margin-top: 3px; }
         
-        .submenu-list { display: flex; flex-direction: column; gap: 10px; }
-        .submenu-item { background: var(--card-bg); border-radius: 12px; padding: 14px 16px; box-shadow: var(--shadow); cursor: pointer; display: flex; align-items: center; gap: 12px; border-left: 4px solid var(--primary); transition: all 0.3s; }
-        .submenu-item:active { transform: translateX(5px); background: #f0fff4; }
-        .submenu-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
-        .submenu-text { flex: 1; }
-        .submenu-title { font-size: 14px; font-weight: 600; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
-        .submenu-desc { font-size: 11px; color: var(--text-light); margin-top: 2px; }
-        .badge-downloaded { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: #e8f5e9; color: #2e7d32; }
-        .badge-online { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: #e3f2fd; color: #1565c0; }
+        /* FOLDER LIST */
+        .folder-list { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+        .folder-item { background: var(--card-bg); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s; border-left: 4px solid var(--primary); }
+        .folder-item:active { transform: translateX(3px); background: #f0fff4; }
+        .folder-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; background: #fff3e0; color: #e65100; }
+        .folder-text { flex: 1; min-width: 0; }
+        .folder-name { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .folder-count { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+        .folder-arrow { font-size: 18px; color: var(--text-light); flex-shrink: 0; }
         
-        .back-btn { padding: 8px 16px; border: none; border-radius: 50px; background: var(--primary); color: white; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 16px; }
-        .back-btn:active { background: var(--primary-dark); }
+        /* VIDEO LIST */
+        .video-list { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+        .video-item { background: var(--card-bg); border-radius: var(--radius); padding: 12px 14px; box-shadow: var(--shadow); cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s; border-left: 4px solid var(--primary); }
+        .video-item:active { transform: translateX(3px); background: #f0fff4; }
+        .video-thumb { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; color: white; }
+        .video-text { flex: 1; min-width: 0; }
+        .video-title { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .video-meta { font-size: 10px; color: var(--text-light); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .badge { font-size: 9px; padding: 2px 6px; border-radius: 8px; flex-shrink: 0; }
+        .badge-downloaded { background: #e8f5e9; color: #2e7d32; }
+        .badge-online { background: #e3f2fd; color: #1565c0; }
         
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 8px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 200; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 12px; cursor: pointer; border: none; background: none; color: var(--text-light); }
+        .back-btn { padding: 8px 16px; border: none; border-radius: 50px; background: var(--primary); color: white; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 12px; display: inline-flex; align-items: center; gap: 6px; }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 6px 0; padding-bottom: max(6px, env(safe-area-inset-bottom)); box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 200; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 8px; cursor: pointer; border: none; background: none; color: var(--text-light); flex: 1; }
         .nav-item.active { color: var(--primary); }
-        .nav-icon { font-size: 22px; }
-        .nav-label { font-size: 10px; font-weight: 600; }
+        .nav-icon { font-size: 20px; }
+        .nav-label { font-size: 9px; font-weight: 600; }
         
-        .btn-action { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-action { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-action:active { transform: scale(0.98); }
         .btn-primary { background: var(--primary); color: white; }
         .btn-secondary { background: #2196F3; color: white; }
@@ -72,80 +84,58 @@
         .btn-download.downloaded { background: #4CAF50; color: white; border-color: #4CAF50; }
         .btn-danger { background: #f44336; color: white; }
         
-        .video-detail-card { background: white; border-radius: 16px; padding: 24px; box-shadow: var(--shadow); text-align: center; margin-bottom: 16px; }
-        .video-icon { font-size: 60px; margin-bottom: 16px; }
-        .video-title { font-size: 20px; margin-bottom: 8px; }
-        .video-desc { color: var(--text-light); margin-bottom: 24px; font-size: 14px; }
-        .video-size { background: #f0f0f0; padding: 8px 16px; border-radius: 20px; display: inline-block; margin-bottom: 16px; font-size: 12px; }
+        .video-detail-card { background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); text-align: center; margin-bottom: 16px; }
+        .video-icon { font-size: 56px; margin-bottom: 12px; }
+        .video-detail-title { font-size: 18px; margin-bottom: 8px; line-height: 1.3; }
+        .video-desc { color: var(--text-light); margin-bottom: 20px; font-size: 13px; }
+        .video-size { background: #f0f0f0; padding: 6px 14px; border-radius: 20px; display: inline-block; margin-bottom: 12px; font-size: 11px; }
+        .video-folder-tag { background: #fff3e0; padding: 6px 14px; border-radius: 20px; display: inline-block; margin-bottom: 12px; font-size: 11px; color: #e65100; }
         
-        /* STREAMING PLAYER */
         #streamingPlayer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5000; display: none; flex-direction: column; }
         #streamingPlayer.active { display: flex; }
-        .player-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
+        .player-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
         .player-title { font-size: 14px; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; }
-        .player-btn { width: 36px; height: 36px; border: none; border-radius: 50%; background: rgba(255,255,255,0.2); color: white; font-size: 18px; cursor: pointer; }
-        .player-btn:active { background: rgba(255,255,255,0.4); }
-        .player-container { flex: 1; width: 100%; position: relative; }
+        .player-btn { width: 36px; height: 36px; border: none; border-radius: 50%; background: rgba(255,255,255,0.2); color: white; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .player-container { flex: 1; width: 100%; position: relative; overflow: hidden; }
         .player-container iframe { width: 100%; height: 100%; border: none; }
         
-        .storage-info { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: var(--radius); padding: 20px; color: white; margin-bottom: 16px; }
-        .storage-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.3); border-radius: 4px; margin: 10px 0; overflow: hidden; }
-        .storage-fill { height: 100%; background: white; border-radius: 4px; transition: width 0.5s; }
+        .storage-info { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: var(--radius); padding: 16px; color: white; margin-bottom: 16px; }
+        .storage-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.3); border-radius: 3px; margin: 8px 0; overflow: hidden; }
+        .storage-fill { height: 100%; background: white; border-radius: 3px; transition: width 0.5s; }
         
-        /* TOAST - FIXED */
-        .toast { 
-            position: fixed; 
-            bottom: 90px; 
-            left: 50%; 
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.85); 
-            color: white; 
-            padding: 12px 24px; 
-            border-radius: 50px; 
-            font-size: 14px; 
-            z-index: 9999; 
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-            white-space: nowrap;
-            pointer-events: none;
-        }
-        .toast.show { 
-            opacity: 1;
-            visibility: visible;
-        }
+        .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: white; padding: 10px 20px; border-radius: 50px; font-size: 13px; z-index: 9999; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; white-space: nowrap; pointer-events: none; max-width: 90%; overflow: hidden; text-overflow: ellipsis; }
+        .toast.show { opacity: 1; visibility: visible; }
         
         .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
         .loading-overlay.hidden { display: none; }
-        .spinner { width: 60px; height: 60px; border: 5px solid #f0f0f0; border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        .spinner { width: 50px; height: 50px; border: 4px solid #f0f0f0; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
         @keyframes spin { to { transform: rotate(360deg); } }
         
-        .empty-state { text-align: center; padding: 40px; color: var(--text-light); }
-        .empty-icon { font-size: 60px; margin-bottom: 16px; }
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-light); }
+        .empty-icon { font-size: 50px; margin-bottom: 12px; }
         
-        .settings-group { background: white; border-radius: var(--radius); margin-bottom: 16px; overflow: hidden; box-shadow: var(--shadow); }
-        .settings-item { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
+        .settings-group { background: white; border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; box-shadow: var(--shadow); }
+        .settings-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
         .settings-item:last-child { border-bottom: none; }
-        .settings-item-left { display: flex; align-items: center; gap: 12px; }
-        .settings-item-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-        .settings-item-text h4 { font-size: 14px; }
-        .settings-item-text p { font-size: 11px; color: var(--text-light); }
+        .settings-item-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+        .settings-item-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+        .settings-item-text { flex: 1; min-width: 0; }
+        .settings-item-text h4 { font-size: 13px; }
+        .settings-item-text p { font-size: 10px; color: var(--text-light); }
         
-        @media (min-width: 500px) { .category-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (min-width: 500px) { .category-grid { grid-template-columns: repeat(3, 1fr); } .app-content { max-width: 600px; margin: 0 auto; } }
+        @media (min-width: 768px) { .category-grid { grid-template-columns: repeat(4, 1fr); } .app-content { max-width: 800px; } }
     </style>
 </head>
 <body>
 
-    <!-- LOADING -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="spinner"></div>
-        <div style="font-size: 18px; color: var(--primary); font-weight: 600;">Memuat Konten...</div>
-        <div style="font-size: 13px; color: var(--text-light); margin-top: 8px;">Mengambil video dari Google Drive</div>
+        <div style="font-size: 16px; color: var(--primary); font-weight: 600;">Memuat Konten...</div>
     </div>
 
-    <!-- LOCK SCREEN -->
     <div id="lockScreen">
-        <div class="lock-logo">📖</div>
+        <div class="lock-logo"></div>
         <div class="lock-title">Smart Hafiz</div>
         <div class="lock-subtitle">Streaming Tanpa Login</div>
         <input type="password" class="lock-input" id="lockPassword" placeholder="PIN (default: 1234)" maxlength="6" inputmode="numeric">
@@ -153,110 +143,83 @@
         <div style="color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 20px;">PIN default: 1234</div>
     </div>
 
-    <!-- MAIN APP -->
     <div id="mainApp">
         <div class="app-header">
             <div class="header-left">
-                <div class="header-logo">📖</div>
-                <div>
+                <div class="header-logo"></div>
+                <div style="min-width: 0; flex: 1;">
                     <div class="header-title">Smart Hafiz</div>
                     <div class="header-subtitle">Streaming Tanpa Login</div>
                 </div>
             </div>
             <div class="header-right">
-                <button class="header-btn" onclick="forceRefresh()" title="Refresh">🔄</button>
-                <button class="header-btn" onclick="navigateTo('settings')" title="Settings">️</button>
+                <button class="header-btn" onclick="forceRefresh()">🔄</button>
+                <button class="header-btn" onclick="navigateTo('settings')">️</button>
             </div>
         </div>
-        
         <div class="app-content" id="appContent"></div>
-        
         <div class="bottom-nav">
-            <button class="nav-item active" onclick="navigateTo('home')" id="navHome">
-                <span class="nav-icon">🏠</span>
-                <span class="nav-label">Beranda</span>
-            </button>
-            <button class="nav-item" onclick="navigateTo('mengaji')" id="navMengaji">
-                <span class="nav-icon"></span>
-                <span class="nav-label">Mengaji</span>
-            </button>
-            <button class="nav-item" onclick="navigateTo('cerita')" id="navCerita">
-                <span class="nav-icon">📚</span>
-                <span class="nav-label">Cerita</span>
-            </button>
-            <button class="nav-item" onclick="navigateTo('downloads')" id="navDownloads">
-                <span class="nav-icon">💾</span>
-                <span class="nav-label">Download</span>
-            </button>
-            <button class="nav-item" onclick="navigateTo('settings')" id="navSettings">
-                <span class="nav-icon">⚙️</span>
-                <span class="nav-label">Lainnya</span>
-            </button>
+            <button class="nav-item active" onclick="navigateTo('home')" id="navHome"><span class="nav-icon">🏠</span><span class="nav-label">Beranda</span></button>
+            <button class="nav-item" onclick="navigateTo('mengaji')" id="navMengaji"><span class="nav-icon">📖</span><span class="nav-label">Mengaji</span></button>
+            <button class="nav-item" onclick="navigateTo('cerita')" id="navCerita"><span class="nav-icon">📚</span><span class="nav-label">Cerita</span></button>
+            <button class="nav-item" onclick="navigateTo('downloads')" id="navDownloads"><span class="nav-icon">💾</span><span class="nav-label">Download</span></button>
+            <button class="nav-item" onclick="navigateTo('settings')" id="navSettings"><span class="nav-icon">⚙️</span><span class="nav-label">Lainnya</span></button>
         </div>
     </div>
 
-    <!-- STREAMING PLAYER -->
     <div id="streamingPlayer">
         <div class="player-header">
             <div class="player-title" id="playerTitle">Judul Video</div>
-            <button class="player-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
-            <button class="player-btn" onclick="closePlayer()" title="Tutup">✕</button>
+            <button class="player-btn" onclick="toggleFullscreen()">⛶</button>
+            <button class="player-btn" onclick="closePlayer()">✕</button>
         </div>
         <div class="player-container">
-            <iframe id="playerIframe" allowfullscreen allow="autoplay; encrypted-media; fullscreen"></iframe>
+            <iframe id="playerIframe" allowfullscreen allow="autoplay; encrypted-media"></iframe>
         </div>
     </div>
 
-    <!-- TOAST - FIXED VERSION -->
     <div class="toast" id="toast"></div>
 
     <script>
-        // ===== CONFIGURATION =====
         const CONFIG = {
             pin: localStorage.getItem('smartHafizPIN') || '1234',
             driveScriptUrl: 'https://script.google.com/macros/s/AKfycbztHEosCVhPgBmmNkrP5QFjkCixNeQQO5RquR1t-w0eklc4KwnPc3fvH3HOTkdbFN-Nrg/exec'
         };
 
-        // ===== STATE =====
         let CONTENT = {};
         let currentPage = 'home';
         let navigationStack = [];
+        let currentCategory = null;
+        let currentFolder = null;
         let downloadedVideos = JSON.parse(localStorage.getItem('downloadedVideos') || '[]');
         let toastTimeout = null;
 
-        // ===== INIT =====
         document.addEventListener('DOMContentLoaded', function() {
             loadContentFromDrive();
             setupEventListeners();
-            
             document.getElementById('lockPassword').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') enterApp();
             });
         });
 
-        // ===== CONTENT LOADING =====
         async function loadContentFromDrive(forceRefresh = false) {
             try {
                 if (forceRefresh) {
                     localStorage.removeItem('smartHafizContent');
                     showToast('🔄 Memuat ulang...');
                 }
-                
                 const cached = localStorage.getItem('smartHafizContent');
                 if (cached && !forceRefresh) {
                     CONTENT = JSON.parse(cached);
                     updateUI();
                     return;
                 }
-
                 const response = await fetch(CONFIG.driveScriptUrl);
                 const result = await response.json();
-                
                 if (result.success && result.data) {
                     CONTENT = result.data;
                     localStorage.setItem('smartHafizContent', JSON.stringify(CONTENT));
-                    const total = countTotalVideos();
-                    showToast(`✅ ${total} video dimuat!`);
+                    showToast(`✅ ${result.totalVideos} video di ${result.totalFolders} folder!`);
                     updateUI();
                 }
             } catch (error) {
@@ -266,41 +229,27 @@
             }
         }
 
-        function countTotalVideos() {
-            let count = 0;
-            for (let key in CONTENT) {
-                if (CONTENT[key].items) count += CONTENT[key].items.length;
-            }
-            return count;
-        }
-
         function updateUI() {
             document.getElementById('loadingOverlay').classList.add('hidden');
             if (currentPage === 'home') renderHome();
+            else if (currentPage === 'category') renderCategory(currentCategory);
+            else if (currentPage === 'folder') renderFolder(currentCategory, currentFolder);
         }
 
-        function forceRefresh() {
-            showToast('🔄 Force refresh...');
-            loadContentFromDrive(true);
-        }
+        function forceRefresh() { showToast('🔄 Force refresh...'); loadContentFromDrive(true); }
 
-        // ===== NAVIGATION =====
         function navigateTo(page, data) {
-            navigationStack.push({ page: currentPage, data: data });
+            navigationStack.push({ page: currentPage, category: currentCategory, folder: currentFolder, data: data });
             currentPage = page;
             updateNavActive();
             
             switch(page) {
                 case 'home': renderHome(); break;
-                case 'mengaji': renderCategory('mengaji'); break;
-                case 'cerita': renderCategory('cerita'); break;
-                case 'lagu': renderCategory('lagu'); break;
-                case 'film': renderCategory('film'); break;
-                case 'akhlaq': renderCategory('akhlaq'); break;
-                case 'pengetahuan': renderCategory('pengetahuan'); break;
+                case 'category': currentCategory = data.category; renderCategory(data.category); break;
+                case 'folder': currentCategory = data.category; currentFolder = data.folder; renderFolder(data.category, data.folder); break;
+                case 'videoDetail': showVideoDetail(data.category, data.folder, data.itemId); break;
                 case 'downloads': renderDownloads(); break;
                 case 'settings': renderSettings(); break;
-                case 'videoDetail': showVideoDetail(data.category, data.itemId); break;
                 default: renderHome();
             }
         }
@@ -309,204 +258,181 @@
             if (navigationStack.length > 0) {
                 const prev = navigationStack.pop();
                 currentPage = prev.page;
+                currentCategory = prev.category;
+                currentFolder = prev.folder;
                 updateNavActive();
                 
                 if (currentPage === 'home') renderHome();
-                else if (['mengaji','cerita','lagu','film','akhlaq','pengetahuan'].includes(currentPage)) {
-                    renderCategory(currentPage);
-                }
+                else if (currentPage === 'category') renderCategory(currentCategory);
+                else if (currentPage === 'folder') renderFolder(currentCategory, currentFolder);
                 else if (currentPage === 'downloads') renderDownloads();
                 else if (currentPage === 'settings') renderSettings();
-            } else {
-                renderHome();
-            }
+            } else renderHome();
         }
 
         function updateNavActive() {
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            const navMap = { 
-                'home': 'navHome', 
-                'mengaji': 'navMengaji', 
-                'cerita': 'navCerita', 
-                'lagu': 'navCerita',
-                'film': 'navCerita',
-                'akhlaq': 'navCerita',
-                'pengetahuan': 'navCerita',
-                'downloads': 'navDownloads', 
-                'settings': 'navSettings' 
-            };
+            const navMap = { 'home': 'navHome', 'category': 'navMengaji', 'folder': 'navMengaji', 'videoDetail': 'navMengaji', 'downloads': 'navDownloads', 'settings': 'navSettings' };
             if (navMap[currentPage]) document.getElementById(navMap[currentPage]).classList.add('active');
         }
 
-        // ===== RENDER PAGES =====
         function renderHome() {
             navigationStack = [];
-            let totalVideos = 0;
-            
+            currentCategory = null;
+            currentFolder = null;
+            let totalVideos = 0, totalFolders = 0;
             let categoryHTML = '';
+            const colorMap = { 'mengaji': '#1a7a4c', 'cerita': '#7b1fa2', 'lagu': '#e65100', 'film': '#c62828', 'akhlaq': '#ad1457', 'pengetahuan': '#1565c0' };
+            
             for (let key in CONTENT) {
-                const category = CONTENT[key];
-                const count = category.items ? category.items.length : 0;
-                const saved = downloadedVideos.filter(id => category.items?.some(i => i.driveId === id)).length;
-                totalVideos += count;
-                
-                const colorMap = {
-                    'mengaji': '#1a7a4c',
-                    'cerita': '#7b1fa2',
-                    'lagu': '#e65100',
-                    'film': '#c62828',
-                    'akhlaq': '#ad1457',
-                    'pengetahuan': '#1565c0'
-                };
-                
+                const cat = CONTENT[key];
+                totalVideos += cat.totalVideos || 0;
+                totalFolders += Object.keys(cat.folders || {}).length;
                 categoryHTML += `
-                    <div class="category-card" onclick="navigateTo('${key}')">
-                        <div class="category-icon" style="background:${colorMap[key] || '#1a7a4c'}; color:white;">
-                            ${category.icon || '📁'}
-                        </div>
-                        <div class="category-name">${category.title}</div>
-                        <div class="category-count">${count} video • ${saved} tersimpan</div>
-                    </div>
-                `;
+                    <div class="category-card" onclick="navigateTo('category', {category: '${key}'})">
+                        <div class="category-icon" style="background:${colorMap[key] || '#1a7a4c'};">${cat.icon || '📁'}</div>
+                        <div class="category-name">${cat.title}</div>
+                        <div class="category-count">${cat.totalVideos || 0} video • ${Object.keys(cat.folders || {}).length} folder</div>
+                    </div>`;
             }
 
             document.getElementById('appContent').innerHTML = `
                 <div class="storage-info">
-                    <h3>💾 Penyimpanan</h3>
-                    <div style="font-size: 24px; font-weight: bold; margin: 8px 0;">
-                        ${downloadedVideos.length} video tersimpan
-                    </div>
-                    <div class="storage-bar">
-                        <div class="storage-fill" style="width: ${totalVideos > 0 ? (downloadedVideos.length / totalVideos) * 100 : 0}%"></div>
-                    </div>
-                    <div style="font-size: 12px; opacity: 0.9;">
-                        ${downloadedVideos.length} dari ${totalVideos} video
-                    </div>
+                    <h3> Penyimpanan</h3>
+                    <div style="font-size: 22px; font-weight: bold; margin: 6px 0;">${downloadedVideos.length} video tersimpan</div>
+                    <div class="storage-bar"><div class="storage-fill" style="width: ${totalVideos > 0 ? (downloadedVideos.length / totalVideos) * 100 : 0}%"></div></div>
+                    <div style="font-size: 11px; opacity: 0.9;">${downloadedVideos.length} dari ${totalVideos} video • ${totalFolders} folder</div>
                 </div>
-                
-                <div class="page-title">Menu Utama</div>
-                <div class="category-grid">${categoryHTML}</div>
-            `;
+                <div class="page-title">📱 Menu Utama</div>
+                <div class="category-grid">${categoryHTML}</div>`;
         }
 
-        function renderCategory(key) {
-            const category = CONTENT[key];
-            if (!category) {
-                showToast('Kategori tidak ditemukan');
-                return;
-            }
+        function renderCategory(categoryKey) {
+            const category = CONTENT[categoryKey];
+            if (!category) { showToast('Kategori tidak ditemukan'); return; }
             
-            let itemsHTML = '';
-            if (category.items && category.items.length > 0) {
-                itemsHTML = category.items.map((item, index) => {
-                    const isDownloaded = downloadedVideos.includes(item.driveId);
-                    const colorMap = {
-                        'mengaji': '#1a7a4c',
-                        'cerita': '#7b1fa2',
-                        'lagu': '#e65100',
-                        'film': '#c62828',
-                        'akhlaq': '#ad1457',
-                        'pengetahuan': '#1565c0'
-                    };
-                    
+            const folders = category.folders || {};
+            const folderNames = Object.keys(folders).sort();
+            
+            let foldersHTML = '';
+            if (folderNames.length > 0) {
+                foldersHTML = folderNames.map((folderName, index) => {
+                    const folder = folders[folderName];
+                    const videoCount = folder.items.length;
                     return `
-                        <div class="submenu-item" onclick="navigateTo('videoDetail', {category: '${key}', itemId: '${item.id}'})">
-                            <div class="submenu-icon" style="background:${colorMap[key] || '#1a7a4c'}; color:white;">🎬</div>
-                            <div class="submenu-text">
-                                <div class="submenu-title">
-                                    ${item.name}
-                                    ${isDownloaded ? '<span class="badge-downloaded">✓ Tersimpan</span>' : '<span class="badge-online">Online</span>'}
-                                </div>
-                                <div class="submenu-desc">${item.desc || 'Video edukasi'} ${item.size ? '• ' + item.size : ''}</div>
+                        <div class="folder-item" style="animation-delay: ${index * 0.03}s" onclick="navigateTo('folder', {category: '${categoryKey}', folder: '${folderName.replace(/'/g, "\\'")}'})">
+                            <div class="folder-icon">📁</div>
+                            <div class="folder-text">
+                                <div class="folder-name">${folderName}</div>
+                                <div class="folder-count">${videoCount} video</div>
                             </div>
-                            <span style="font-size: 18px; color: var(--text-light);">›</span>
-                        </div>
-                    `;
+                            <div class="folder-arrow">›</div>
+                        </div>`;
                 }).join('');
             } else {
-                itemsHTML = `<div class="empty-state"><div class="empty-icon"></div><p>Belum ada video di kategori ini</p></div>`;
+                foldersHTML = `<div class="empty-state"><div class="empty-icon">📭</div><p>Belum ada folder</p></div>`;
             }
 
             document.getElementById('appContent').innerHTML = `
                 <button class="back-btn" onclick="goBack()">← Kembali</button>
+                <div class="breadcrumb"><span onclick="navigateTo('home')">Beranda</span> / ${category.title}</div>
                 <div class="page-title">${category.icon || '📁'} ${category.title}</div>
-                <div class="submenu-list">${itemsHTML}</div>
-            `;
+                <div style="font-size: 12px; color: var(--text-light); margin-bottom: 12px; padding: 0 4px;">
+                    📊 ${category.totalVideos || 0} video dalam ${folderNames.length} folder
+                </div>
+                <div class="folder-list">${foldersHTML}</div>`;
         }
 
-        function showVideoDetail(categoryKey, itemId) {
+        function renderFolder(categoryKey, folderName) {
             const category = CONTENT[categoryKey];
-            if (!category || !category.items) {
-                showToast('Video tidak ditemukan');
-                return;
-            }
+            if (!category || !category.folders[folderName]) { showToast('Folder tidak ditemukan'); return; }
             
-            const item = category.items.find(i => i.id === itemId);
-            if (!item) {
-                showToast('Video tidak ditemukan');
-                return;
+            const folder = category.folders[folderName];
+            const items = folder.items || [];
+            
+            let videosHTML = '';
+            if (items.length > 0) {
+                videosHTML = items.map((item, index) => {
+                    const isDownloaded = downloadedVideos.includes(item.driveId);
+                    return `
+                        <div class="video-item" onclick="navigateTo('videoDetail', {category: '${categoryKey}', folder: '${folderName.replace(/'/g, "\\'")}', itemId: '${item.id}'})">
+                            <div class="video-thumb" style="background:${category.color || '#1a7a4c'};">🎬</div>
+                            <div class="video-text">
+                                <div class="video-title">${item.name} ${isDownloaded ? '<span class="badge badge-downloaded">✓</span>' : '<span class="badge badge-online">Online</span>'}</div>
+                                <div class="video-meta">${item.size || 'Unknown size'}</div>
+                            </div>
+                            <span style="font-size: 18px; color: var(--text-light); flex-shrink: 0;">›</span>
+                        </div>`;
+                }).join('');
+            } else {
+                videosHTML = `<div class="empty-state"><div class="empty-icon">📭</div><p>Belum ada video</p></div>`;
             }
+
+            document.getElementById('appContent').innerHTML = `
+                <button class="back-btn" onclick="navigateTo('category', {category: '${categoryKey}'})">← Kembali ke ${category.title}</button>
+                <div class="breadcrumb">
+                    <span onclick="navigateTo('home')">Beranda</span> / 
+                    <span onclick="navigateTo('category', {category: '${categoryKey}'})">${category.title}</span> / 
+                    ${folderName}
+                </div>
+                <div class="page-title">📁 ${folderName}</div>
+                <div style="font-size: 12px; color: var(--text-light); margin-bottom: 12px; padding: 0 4px;">
+                    📊 ${items.length} video
+                </div>
+                <div class="video-list">${videosHTML}</div>`;
+        }
+
+        function showVideoDetail(categoryKey, folderName, itemId) {
+            const category = CONTENT[categoryKey];
+            if (!category || !category.folders[folderName]) { showToast('Video tidak ditemukan'); return; }
+            const item = category.folders[folderName].items.find(i => i.id === itemId);
+            if (!item) { showToast('Video tidak ditemukan'); return; }
 
             const isDownloaded = downloadedVideos.includes(item.driveId);
             const driveId = item.driveId;
+            const safeName = item.name.replace(/'/g, "\\'");
+            const safeFolder = folderName.replace(/'/g, "\\'");
 
             document.getElementById('appContent').innerHTML = `
-                <button class="back-btn" onclick="renderCategory('${categoryKey}')">← Kembali</button>
+                <button class="back-btn" onclick="navigateTo('folder', {category: '${categoryKey}', folder: '${safeFolder}'})">← Kembali ke ${folderName}</button>
+                <div class="breadcrumb">
+                    <span onclick="navigateTo('home')">Beranda</span> / 
+                    <span onclick="navigateTo('category', {category: '${categoryKey}'})">${category.title}</span> / 
+                    <span onclick="navigateTo('folder', {category: '${categoryKey}', folder: '${safeFolder}'})">${folderName}</span>
+                </div>
                 <div class="video-detail-card">
                     <div class="video-icon">🎬</div>
-                    <h3 class="video-title">${item.name}</h3>
+                    <h3 class="video-detail-title">${item.name}</h3>
+                    <div class="video-folder-tag">📁 ${item.folder || folderName}</div>
                     <p class="video-desc">${item.desc || 'Video edukasi Islami'}</p>
-                    ${item.size ? `<div class="video-size">📦 ${item.size}</div>` : ''}
-                    
-                    <button class="btn-action btn-primary" onclick="streamVideo('${driveId}', '${item.name.replace(/'/g, "\\'")}')">
-                        ▶️ Streaming Langsung (Tanpa Login)
-                    </button>
-                    
-                    <button class="btn-action btn-secondary" onclick="downloadVideo('${driveId}', '${item.name.replace(/'/g, "\\'")}')">
-                        ⬇️ Download untuk Offline
-                    </button>
-                    
-                    <button class="btn-action btn-download ${isDownloaded ? 'downloaded' : ''}" 
-                            onclick="${isDownloaded ? `deleteVideo('${driveId}', '${item.name.replace(/'/g, "\\'")}')` : `addToDownloadedList('${driveId}', '${item.name.replace(/'/g, "\\'")}')`}">
-                        ${isDownloaded ? '✓ Sudah Tersimpan (Hapus)' : '📥 Simpan ke Daftar'}
-                    </button>
-                    
-                    <div style="margin-top: 16px; padding: 12px; background: #e3f2fd; border-radius: 8px; font-size: 12px; color: #1565c0;">
-                         <strong>Streaming:</strong> Video diputar langsung tanpa perlu login Google. Pastikan video sudah di-set "Public" di Google Drive.
-                    </div>
-                </div>
-            `;
+                    ${item.size ? `<div class="video-size"> ${item.size}</div>` : ''}
+                    <button class="btn-action btn-primary" onclick="streamVideo('${driveId}', '${safeName}')">▶️ Streaming Langsung</button>
+                    <button class="btn-action btn-secondary" onclick="downloadVideo('${driveId}', '${safeName}')">⬇️ Download untuk Offline</button>
+                    <button class="btn-action btn-download ${isDownloaded ? 'downloaded' : ''}" onclick="${isDownloaded ? `deleteVideo('${driveId}', '${safeName}', '${categoryKey}', '${safeFolder}')` : `addToDownloadedList('${driveId}', '${safeName}')`}">${isDownloaded ? '✓ Sudah Tersimpan (Hapus)' : ' Simpan ke Daftar'}</button>
+                    <div style="margin-top: 12px; padding: 10px; background: #e3f2fd; border-radius: 8px; font-size: 11px; color: #1565c0;">💡 Video diputar langsung tanpa login Google</div>
+                </div>`;
         }
 
-        // ===== STREAMING PLAYER =====
         function streamVideo(driveId, title) {
             document.getElementById('playerTitle').textContent = title;
-            const iframe = document.getElementById('playerIframe');
-            const embedUrl = `https://drive.google.com/file/d/${driveId}/preview`;
-            iframe.src = embedUrl;
+            document.getElementById('playerIframe').src = `https://drive.google.com/file/d/${driveId}/preview`;
             document.getElementById('streamingPlayer').classList.add('active');
             showToast('▶️ Streaming dimulai...');
         }
 
         function closePlayer() {
-            const iframe = document.getElementById('playerIframe');
-            iframe.src = '';
+            document.getElementById('playerIframe').src = '';
             document.getElementById('streamingPlayer').classList.remove('active');
         }
 
         function toggleFullscreen() {
             const iframe = document.getElementById('playerIframe');
-            if (iframe.requestFullscreen) {
-                iframe.requestFullscreen();
-            } else if (iframe.webkitRequestFullscreen) {
-                iframe.webkitRequestFullscreen();
-            }
+            if (iframe.requestFullscreen) iframe.requestFullscreen();
+            else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen();
         }
 
-        // ===== DOWNLOAD =====
         function downloadVideo(driveId, name) {
-            const downloadUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
-            window.open(downloadUrl, '_blank');
+            window.open(`https://drive.google.com/uc?export=download&id=${driveId}`, '_blank');
             addToDownloadedList(driveId, name);
         }
 
@@ -514,178 +440,95 @@
             if (!downloadedVideos.includes(driveId)) {
                 downloadedVideos.push(driveId);
                 localStorage.setItem('downloadedVideos', JSON.stringify(downloadedVideos));
-                showToast(`✅ ${name} ditambahkan ke daftar`);
-            } else {
-                showToast('ℹ️ Sudah ada di daftar');
-            }
+                showToast(`✅ ${name} ditambahkan`);
+            } else showToast('ℹ️ Sudah ada di daftar');
         }
 
-        function deleteVideo(driveId, name) {
-            if (confirm(`Hapus "${name}" dari daftar tersimpan?`)) {
+        function deleteVideo(driveId, name, categoryKey, folderName) {
+            if (confirm(`Hapus "${name}"?`)) {
                 downloadedVideos = downloadedVideos.filter(id => id !== driveId);
                 localStorage.setItem('downloadedVideos', JSON.stringify(downloadedVideos));
                 showToast('🗑️ Video dihapus');
-                
-                const prevPage = navigationStack[navigationStack.length - 2];
-                if (prevPage && prevPage.data) {
-                    showVideoDetail(prevPage.data.category, prevPage.data.itemId);
-                }
+                showVideoDetail(categoryKey, folderName, CONTENT[categoryKey].folders[folderName].items.find(i => i.driveId === driveId)?.id);
             }
         }
 
         function renderDownloads() {
-            let html = '<button class="back-btn" onclick="goBack()">← Kembali</button>';
-            html += '<div class="page-title">💾 Video Tersimpan</div>';
-            
+            let html = '<button class="back-btn" onclick="goBack()">← Kembali</button><div class="page-title">💾 Video Tersimpan</div>';
             if (downloadedVideos.length === 0) {
-                html += `
-                    <div class="empty-state">
-                        <div class="empty-icon">📭</div>
-                        <h3>Belum ada video yang diunduh</h3>
-                        <p>Pilih video dan klik "Download untuk Offline"</p>
-                    </div>
-                `;
+                html += `<div class="empty-state"><div class="empty-icon">📭</div><h3>Belum ada video</h3><p>Klik "Download untuk Offline"</p></div>`;
             } else {
                 downloadedVideos.forEach(driveId => {
-                    let videoInfo = { name: 'Video Tidak Dikenal', category: '', icon: '🎬' };
+                    let info = { name: 'Video Tidak Dikenal', category: '', folder: '', icon: '' };
                     for (let catKey in CONTENT) {
-                        const item = CONTENT[catKey].items?.find(i => i.driveId === driveId);
-                        if (item) {
-                            videoInfo = { 
-                                name: item.name, 
-                                category: CONTENT[catKey].title,
-                                icon: CONTENT[catKey].icon || ''
-                            };
-                            break;
+                        const folders = CONTENT[catKey].folders || {};
+                        for (let folderName in folders) {
+                            const item = folders[folderName].items.find(i => i.driveId === driveId);
+                            if (item) { info = { name: item.name, category: CONTENT[catKey].title, folder: folderName, icon: CONTENT[catKey].icon || '🎬' }; break; }
                         }
+                        if (info.name !== 'Video Tidak Dikenal') break;
                     }
-                    
-                    html += `
-                        <div class="submenu-item" style="margin-bottom: 10px;">
-                            <div class="submenu-icon" style="background:var(--primary); color:white;">${videoInfo.icon}</div>
-                            <div class="submenu-text">
-                                <div class="submenu-title">${videoInfo.name}</div>
-                                <div class="submenu-desc">${videoInfo.category}</div>
-                            </div>
-                            <button class="btn-action" style="width: auto; padding: 8px 16px; font-size: 12px; margin: 0;" 
-                                    onclick="streamVideo('${driveId}', '${videoInfo.name.replace(/'/g, "\\'")}')">▶️</button>
-                        </div>
-                    `;
+                    html += `<div class="video-item" style="margin-bottom: 8px;">
+                        <div class="video-thumb" style="background:var(--primary);">${info.icon}</div>
+                        <div class="video-text"><div class="video-title">${info.name}</div><div class="video-meta">${info.category} • ${info.folder}</div></div>
+                        <button class="btn-action" style="width: auto; padding: 8px 14px; font-size: 12px; margin: 0;" onclick="streamVideo('${driveId}', '${info.name.replace(/'/g, "\\'")}')">▶️</button>
+                    </div>`;
                 });
-                
-                html += `
-                    <button class="btn-action btn-danger" style="margin-top: 16px;" 
-                            onclick="clearAllDownloads()">
-                        🗑️ Hapus Semua Download
-                    </button>
-                `;
+                html += `<button class="btn-action btn-danger" style="margin-top: 12px;" onclick="clearAllDownloads()">🗑️ Hapus Semua</button>`;
             }
-            
             document.getElementById('appContent').innerHTML = html;
         }
 
         function clearAllDownloads() {
-            if (confirm('Hapus semua video dari daftar tersimpan?')) {
+            if (confirm('Hapus semua download?')) {
                 downloadedVideos = [];
                 localStorage.setItem('downloadedVideos', '[]');
                 renderDownloads();
-                showToast('✅ Semua download dihapus');
+                showToast('✅ Dihapus semua');
             }
         }
 
-        // ===== SETTINGS =====
         function renderSettings() {
             document.getElementById('appContent').innerHTML = `
                 <button class="back-btn" onclick="goBack()">← Kembali</button>
                 <div class="page-title">⚙️ Pengaturan</div>
                 <div class="settings-group">
                     <div class="settings-item" onclick="forceRefresh()">
-                        <div class="settings-item-left">
-                            <div class="settings-item-icon" style="background:#fff3e0; color:#e65100;">🔄</div>
-                            <div class="settings-item-text">
-                                <h4>Force Refresh Konten</h4>
-                                <p>Update dari Google Drive</p>
-                            </div>
-                        </div>
-                        <span>›</span>
+                        <div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0; color:#e65100;">🔄</div><div class="settings-item-text"><h4>Force Refresh</h4><p>Update dari Google Drive</p></div></div><span>›</span>
                     </div>
                     <div class="settings-item" onclick="navigateTo('downloads')">
-                        <div class="settings-item-left">
-                            <div class="settings-item-icon" style="background:#f3e5f5; color:#7b1fa2;">💾</div>
-                            <div class="settings-item-text">
-                                <h4>Riwayat Download</h4>
-                                <p>${downloadedVideos.length} video tersimpan</p>
-                            </div>
-                        </div>
-                        <span>›</span>
+                        <div class="settings-item-left"><div class="settings-item-icon" style="background:#f3e5f5; color:#7b1fa2;">💾</div><div class="settings-item-text"><h4>Riwayat Download</h4><p>${downloadedVideos.length} video</p></div></div><span>›</span>
                     </div>
                     <div class="settings-item" onclick="clearAllDownloads()">
-                        <div class="settings-item-left">
-                            <div class="settings-item-icon" style="background:#ffebee; color:#c62828;">🗑️</div>
-                            <div class="settings-item-text">
-                                <h4>Hapus Semua Download</h4>
-                                <p>Reset daftar video tersimpan</p>
-                            </div>
-                        </div>
-                        <span>›</span>
+                        <div class="settings-item-left"><div class="settings-item-icon" style="background:#ffebee; color:#c62828;">️</div><div class="settings-item-text"><h4>Hapus Semua</h4><p>Reset daftar</p></div></div><span>›</span>
                     </div>
                 </div>
-                <div style="text-align:center; padding:20px; color:var(--text-light); font-size:12px;">
-                    Smart Hafiz v2.0<br>
-                    Streaming Tanpa Login<br>
-                    © 2024
-                </div>
-            `;
+                <div style="text-align:center; padding:16px; color:var(--text-light); font-size:11px;">Smart Hafiz v4.0<br>Folder-Based Navigation<br>© 2024</div>`;
         }
 
-        // ===== UTILITIES =====
         function setupEventListeners() {
             history.pushState(null, null, location.href);
-            window.addEventListener('popstate', () => {
-                history.pushState(null, null, location.href);
-                if (currentPage !== 'home') goBack();
-            });
-
+            window.addEventListener('popstate', () => { history.pushState(null, null, location.href); if (currentPage !== 'home') goBack(); });
             document.addEventListener('contextmenu', e => e.preventDefault());
         }
 
         function enterApp() {
-            const pin = document.getElementById('lockPassword').value;
-            if (pin === CONFIG.pin) {
+            if (document.getElementById('lockPassword').value === CONFIG.pin) {
                 document.getElementById('lockScreen').classList.add('hidden');
                 document.getElementById('mainApp').classList.add('active');
                 renderHome();
-                // Toast welcome - akan hilang otomatis
-                showToast('Selamat datang di Smart Hafiz! 📖');
-            } else {
-                showToast('❌ PIN salah');
-                document.getElementById('lockPassword').value = '';
-            }
+                showToast('Selamat datang! ');
+            } else { showToast('❌ PIN salah'); document.getElementById('lockPassword').value = ''; }
         }
 
-        // ===== TOAST - FIXED VERSION =====
         function showToast(message) {
             const toast = document.getElementById('toast');
-            
-            // Clear timeout sebelumnya jika ada
-            if (toastTimeout) {
-                clearTimeout(toastTimeout);
-                toastTimeout = null;
-            }
-            
-            // Set pesan
+            if (toastTimeout) clearTimeout(toastTimeout);
             toast.textContent = message;
-            
-            // Tampilkan dengan forced reflow
             toast.classList.remove('show');
-            void toast.offsetWidth; // Force reflow
+            void toast.offsetWidth;
             toast.classList.add('show');
-            
-            // Hilangkan setelah 2.5 detik
-            toastTimeout = setTimeout(() => {
-                toast.classList.remove('show');
-                toastTimeout = null;
-            }, 2500);
+            toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 2500);
         }
     </script>
 </body>
