@@ -6,11 +6,8 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1a7a4c">
-    <meta name="description" content="Smart Hafiz - Solusi Pintar Menghafal Al-Quran dengan konten otomatis dari Google Drive">
+    <meta name="description" content="Smart Hafiz - Solusi Pintar Menghafal Al-Quran">
     <title>Smart Hafiz - Solusi Pintar Menghafal Al-Quran</title>
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href='data:application/manifest+json,{"name":"Smart Hafiz - Auto Content","short_name":"SmartHafiz","start_url":".","display":"standalone","background_color":"#1a7a4c","theme_color":"#1a7a4c","orientation":"portrait","icons":[{"src":"data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%231a7a4c%22 width=%22100%22 height=%22100%22 rx=%2220%22/><text x=%2250%22 y=%2265%22 font-size=%2250%22 text-anchor=%22middle%22>📖</text></svg>","sizes":"192x192","type":"image/svg+xml"}]}'>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
@@ -138,7 +135,6 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .slide-in { animation: slideIn 0.3s ease; }
         @keyframes slideIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes loading { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
         
         @media (min-width: 500px) { .category-grid { grid-template-columns: repeat(3, 1fr); } }
         .no-context { -webkit-touch-callout: none; }
@@ -159,6 +155,10 @@
         .stat-item { flex: 1; }
         .stat-value { font-size: 24px; font-weight: bold; color: var(--primary); }
         .stat-label { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+        
+        .debug-panel { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 12px; }
+        .debug-panel h4 { color: #856404; margin-bottom: 8px; }
+        .debug-panel button { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-top: 8px; }
     </style>
 </head>
 <body class="no-context">
@@ -195,15 +195,15 @@
             </div>
             <div class="header-right">
                 <button class="header-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
-                <button class="header-btn" onclick="refreshContent()" title="Refresh">🔄</button>
-                <button class="header-btn" onclick="navigateTo('settings')" title="Pengaturan">️</button>
+                <button class="header-btn" onclick="forceRefresh()" title="Force Refresh">🔄</button>
+                <button class="header-btn" onclick="navigateTo('settings')" title="Pengaturan">⚙️</button>
             </div>
         </div>
         <div class="app-content" id="appContent"></div>
         <div class="bottom-nav">
             <button class="nav-item active" onclick="navigateTo('home')" id="navHome"><span class="nav-icon">🏠</span><span class="nav-label">Beranda</span></button>
-            <button class="nav-item" onclick="navigateTo('mengaji')" id="navMengaji"><span class="nav-icon"></span><span class="nav-label">Mengaji</span></button>
-            <button class="nav-item" onclick="navigateTo('cerita')" id="navCerita"><span class="nav-icon"></span><span class="nav-label">Cerita</span></button>
+            <button class="nav-item" onclick="navigateTo('mengaji')" id="navMengaji"><span class="nav-icon">📖</span><span class="nav-label">Mengaji</span></button>
+            <button class="nav-item" onclick="navigateTo('cerita')" id="navCerita"><span class="nav-icon">📚</span><span class="nav-label">Cerita</span></button>
             <button class="nav-item" onclick="navigateTo('downloads')" id="navDownloads"><span class="nav-icon">💾</span><span class="nav-label">Download</span></button>
             <button class="nav-item" onclick="navigateTo('settings')" id="navSettings"><span class="nav-icon">⚙️</span><span class="nav-label">Lainnya</span></button>
         </div>
@@ -212,7 +212,7 @@
     <!-- VIDEO PLAYER -->
     <div id="videoPlayer">
         <div class="video-container" id="videoContainer">
-            <button class="vid-btn-close" onclick="closeVideo()">✕</button>
+            <button class="vid-btn-close" onclick="closeVideo()"></button>
             <div class="video-title-bar">
                 <h3 id="videoTitle">Judul Video</h3>
             </div>
@@ -236,7 +236,7 @@
     <!-- PIN CHANGE MODAL -->
     <div id="pinModal">
         <div class="modal-box">
-            <h3> Ubah PIN</h3>
+            <h3>🔑 Ubah PIN</h3>
             <p>Masukkan PIN baru (4-6 digit)</p>
             <input type="password" class="modal-input" id="newPinInput" placeholder="PIN Baru" maxlength="6" inputmode="numeric">
             <div class="modal-buttons">
@@ -267,6 +267,7 @@
         let isLoadingContent = true;
         let loadError = false;
         let lastContentLoad = null;
+        let debugInfo = '';
 
         // ===== INITIALIZATION =====
         document.addEventListener('DOMContentLoaded', function() {
@@ -275,38 +276,60 @@
         });
 
         // ===== AUTO-LOAD CONTENT FROM GOOGLE DRIVE =====
-        async function loadContentFromDrive() {
+        async function loadContentFromDrive(forceRefresh = false) {
             try {
-                // Check cache (1 hour)
-                const cachedData = localStorage.getItem('smartHafizContent');
-                const cachedTime = localStorage.getItem('smartHafizContentTime');
-                
-                if (cachedData && cachedTime) {
-                    const age = Date.now() - parseInt(cachedTime);
-                    if (age < 3600000) { // 1 hour
-                        CONTENT = JSON.parse(cachedData);
-                        isLoadingContent = false;
-                        console.log('✅ Using cached content');
-                        updateUI();
-                        return;
+                // Clear cache jika force refresh atau data lama 0 video
+                if (forceRefresh) {
+                    localStorage.removeItem('smartHafizContent');
+                    localStorage.removeItem('smartHafizContentTime');
+                    showToast('🔄 Memuat ulang dari server...');
+                } else {
+                    // Check cache (1 hour)
+                    const cachedData = localStorage.getItem('smartHafizContent');
+                    const cachedTime = localStorage.getItem('smartHafizContentTime');
+                    
+                    if (cachedData && cachedTime) {
+                        const age = Date.now() - parseInt(cachedTime);
+                        const cachedContent = JSON.parse(cachedData);
+                        
+                        // Jika cache ada data (lebih dari 0 video), gunakan
+                        if (age < 3600000 && countTotalVideos(cachedContent) > 0) {
+                            CONTENT = cachedContent;
+                            isLoadingContent = false;
+                            console.log('✅ Using cached content');
+                            updateUI();
+                            return;
+                        } else {
+                            // Cache expired atau 0 video, hapus
+                            localStorage.removeItem('smartHafizContent');
+                            localStorage.removeItem('smartHafizContentTime');
+                        }
                     }
                 }
                 
                 // Fetch from Google Apps Script
+                console.log('🔄 Fetching from Google Apps Script...');
                 const response = await fetch(CONFIG.driveScriptUrl);
                 const result = await response.json();
+                
+                console.log('📊 Response:', result);
                 
                 if (result.success && result.data) {
                     CONTENT = result.data;
                     isLoadingContent = false;
                     lastContentLoad = new Date();
                     
-                    // Cache data
-                    localStorage.setItem('smartHafizContent', JSON.stringify(CONTENT));
-                    localStorage.setItem('smartHafizContentTime', Date.now().toString());
+                    const totalVideos = countTotalVideos(CONTENT);
                     
-                    console.log('✅ Content loaded:', result.totalVideos, 'videos in', result.totalCategories, 'categories');
-                    showToast(`✅ ${result.totalVideos} video berhasil dimuat!`);
+                    // Cache data hanya jika ada video
+                    if (totalVideos > 0) {
+                        localStorage.setItem('smartHafizContent', JSON.stringify(CONTENT));
+                        localStorage.setItem('smartHafizContentTime', Date.now().toString());
+                        console.log('✅ Content cached:', totalVideos, 'videos');
+                    }
+                    
+                    debugInfo = `✅ ${totalVideos} video loaded from ${result.totalCategories || Object.keys(CONTENT).length} categories`;
+                    showToast(`✅ ${totalVideos} video berhasil dimuat!`);
                     updateUI();
                 } else {
                     throw new Error(result.error || 'Invalid response');
@@ -315,6 +338,7 @@
                 console.error('❌ Error loading content:', error);
                 loadError = true;
                 isLoadingContent = false;
+                debugInfo = '❌ Error: ' + error.message;
                 
                 // Fallback content
                 CONTENT = getFallbackContent();
@@ -323,9 +347,19 @@
             }
         }
 
+        function countTotalVideos(content) {
+            let count = 0;
+            for (let key in content) {
+                if (content[key].items) {
+                    count += content[key].items.length;
+                }
+            }
+            return count;
+        }
+
         function getFallbackContent() {
             return {
-                mengaji: { title: 'MENGAJI YUK', icon: '📖', color: 'bg-green', items: [] },
+                mengaji: { title: 'MENGAJI YUK', icon: '', color: 'bg-green', items: [] },
                 cerita: { title: 'CERITA', icon: '📚', color: 'bg-purple', items: [] },
                 lagu: { title: 'MENYANYI YUK', icon: '🎵', color: 'bg-orange', items: [] }
             };
@@ -338,11 +372,9 @@
             document.getElementById('loadingOverlay').classList.add('hidden');
         }
 
-        function refreshContent() {
-            showToast('🔄 Menyegarkan konten...');
-            localStorage.removeItem('smartHafizContent');
-            localStorage.removeItem('smartHafizContentTime');
-            loadContentFromDrive();
+        function forceRefresh() {
+            showToast('🔄 Force refresh...');
+            loadContentFromDrive(true);
         }
 
         // ===== APP INITIALIZATION =====
@@ -457,8 +489,10 @@
             let totalVideos = 0;
             let totalCategories = 0;
             for (let key in CONTENT) {
-                totalVideos += CONTENT[key].items.length;
-                totalCategories++;
+                if (CONTENT[key].items) {
+                    totalVideos += CONTENT[key].items.length;
+                    totalCategories++;
+                }
             }
 
             let categoryHTML = '';
@@ -498,6 +532,15 @@
                         <div class="point-label">Klik untuk melihat daftar unduhan</div>
                     </div>
                     
+                    ${debugInfo ? `
+                        <div class="debug-panel">
+                            <h4>🔧 Debug Info</h4>
+                            <p>${debugInfo}</p>
+                            <button onclick="forceRefresh()">🔄 Force Refresh</button>
+                            <button onclick="clearAllCache()">️ Clear Cache</button>
+                        </div>
+                    ` : ''}
+                    
                     <div class="page-title"><span class="icon"></span> Menu Utama</div>
                     <div class="category-grid">
                         ${categoryHTML}
@@ -533,7 +576,7 @@
                 itemsHTML = category.items.map((item, index) => {
                     const isSaved = CONFIG.downloadedVideos.includes(item.driveId);
                     return `<div class="submenu-item slide-in" style="animation-delay: ${index * 0.05}s" onclick="navigateTo('videoDetail', {category: '${key}', itemId: '${item.id}'})">
-                        <div class="submenu-icon" style="background:var(--${category.color.replace('bg-', '')}); color:inherit;">🎬</div>
+                        <div class="submenu-icon" style="background:var(--${category.color.replace('bg-', '')}); color:inherit;"></div>
                         <div class="submenu-text">
                             <div class="submenu-title">${item.name} ${isSaved ? '<span class="badge-saved">✓ Tersimpan</span>' : '<span class="badge-online">Online</span>'}</div>
                             <div class="submenu-desc">${item.desc} ${item.size ? '• ' + item.size : ''}</div>
@@ -543,7 +586,7 @@
                 }).join('');
             } else {
                 itemsHTML = `<div style="text-align:center; padding:40px; color:var(--text-light);">
-                    <div style="font-size:48px; margin-bottom:16px;"></div>
+                    <div style="font-size:48px; margin-bottom:16px;">📭</div>
                     <p>Belum ada video di kategori ini</p>
                 </div>`;
             }
@@ -579,7 +622,7 @@
                     <div class="back-bar"><button class="back-btn" onclick="renderCategory('${categoryKey}')">← Kembali</button></div>
                     <div class="page-title"><span class="icon">🎬</span> Detail Video</div>
                     <div style="background:white; border-radius:16px; padding:24px; box-shadow:var(--shadow); text-align:center;">
-                        <div style="font-size:60px; margin-bottom:16px;"></div>
+                        <div style="font-size:60px; margin-bottom:16px;">🎬</div>
                         <h3 style="font-size:20px; margin-bottom:8px;">${item.name}</h3>
                         <p style="color:var(--text-light); margin-bottom:24px; font-size:14px;">${item.desc}</p>
                         
@@ -697,11 +740,14 @@
                             <div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd; color:#1565c0;">📱</div><div class="settings-item-text"><h4>Mode Kiosk</h4><p>Cegah keluar dari aplikasi</p></div></div>
                             <div class="toggle ${CONFIG.kioskMode ? 'on' : ''}" id="kioskToggle"></div>
                         </div>
-                        <div class="settings-item" onclick="refreshContent()">
-                            <div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0; color:#e65100;">🔄</div><div class="settings-item-text"><h4>Refresh Konten</h4><p>Update dari Google Drive</p></div></div><span>›</span>
+                        <div class="settings-item" onclick="forceRefresh()">
+                            <div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0; color:#e65100;">🔄</div><div class="settings-item-text"><h4>Force Refresh Konten</h4><p>Update dari Google Drive</p></div></div><span>›</span>
+                        </div>
+                        <div class="settings-item" onclick="clearAllCache()">
+                            <div class="settings-item-left"><div class="settings-item-icon" style="background:#ffebee; color:#c62828;">🗑️</div><div class="settings-item-text"><h4>Clear All Cache</h4><p>Hapus semua data cache</p></div></div><span>›</span>
                         </div>
                         <div class="settings-item" onclick="navigateTo('downloads')">
-                            <div class="settings-item-left"><div class="settings-item-icon" style="background:#f3e5f5; color:#7b1fa2;">💾</div><div class="settings-item-text"><h4>Riwayat Unduhan</h4><p>${CONFIG.downloadedVideos.length} video tersimpan</p></div></div><span>›</span>
+                            <div class="settings-item-left"><div class="settings-item-icon" style="background:#f3e5f5; color:#7b1fa2;"></div><div class="settings-item-text"><h4>Riwayat Unduhan</h4><p>${CONFIG.downloadedVideos.length} video tersimpan</p></div></div><span>›</span>
                         </div>
                         <div class="settings-item" onclick="requestExit()">
                             <div class="settings-item-left"><div class="settings-item-icon" style="background:#ffebee; color:#c62828;">🚪</div><div class="settings-item-text"><h4>Keluar Aplikasi</h4><p>Memerlukan PIN</p></div></div><span>›</span>
@@ -713,6 +759,17 @@
                         © 2024
                     </div>
                 </div>`;
+        }
+
+        function clearAllCache() {
+            if (confirm('Hapus semua cache? Aplikasi akan reload data dari Google Drive.')) {
+                localStorage.removeItem('smartHafizContent');
+                localStorage.removeItem('smartHafizContentTime');
+                showToast('🗑️ Cache dihapus, reloading...');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            }
         }
 
         function showPinModal() {
@@ -767,7 +824,7 @@
                 requestFullscreen();
                 showToast('Selamat datang di Smart Hafiz! 📖');
             } else {
-                document.getElementById('lockError').textContent = ' PIN salah, coba lagi';
+                document.getElementById('lockError').textContent = '❌ PIN salah, coba lagi';
                 document.getElementById('lockPassword').value = '';
                 setTimeout(() => { document.getElementById('lockError').textContent = ''; }, 2000);
             }
