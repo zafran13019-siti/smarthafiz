@@ -9,8 +9,7 @@
     <meta name="description" content="Smart Hafiz - Solusi Pintar Menghafal Al-Quran dengan Auto Content dari Google Drive">
     <title>Smart Hafiz - Solusi Pintar Menghafal Al-Quran</title>
     
-    <!-- PWA Manifest -->
-    <link rel="manifest" href='data:application/manifest+json,{"name":"Smart Hafiz - Auto Content","short_name":"SmartHafiz","start_url":".","display":"standalone","background_color":"#1a7a4c","theme_color":"#1a7a4c","orientation":"portrait","icons":[{"src":"data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%231a7a4c%22 width=%22100%22 height=%22100%22 rx=%2220%22/><text x=%2250%22 y=%2265%22 font-size=%2250%22 text-anchor=%22middle%22>📖</text></svg>","sizes":"192x192","type":"image/svg+xml"}]}'>
+    <link rel="manifest" href='data:application/manifest+json,{"name":"Smart Hafiz","short_name":"SmartHafiz","start_url":".","display":"standalone","background_color":"#1a7a4c","theme_color":"#1a7a4c","orientation":"portrait","icons":[{"src":"data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%231a7a4c%22 width=%22100%22 height=%22100%22 rx=%2220%22/><text x=%2250%22 y=%2265%22 font-size=%2250%22 text-anchor=%22middle%22>📖</text></svg>","sizes":"192x192","type":"image/svg+xml"}]}'>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
@@ -161,7 +160,15 @@
         
         .debug-panel { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 12px; }
         .debug-panel h4 { color: #856404; margin-bottom: 8px; }
-        .debug-panel button { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-top: 8px; }
+        .debug-panel button { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-top: 8px; margin-right: 5px; }
+        
+        /* Video detail page */
+        .video-detail-card { background: white; border-radius: 16px; padding: 24px; box-shadow: var(--shadow); text-align: center; }
+        .video-detail-icon { font-size: 60px; margin-bottom: 16px; }
+        .video-detail-title { font-size: 20px; margin-bottom: 8px; }
+        .video-detail-desc { color: var(--text-light); margin-bottom: 24px; font-size: 14px; }
+        .video-size-badge { background: #f0f0f0; padding: 8px 16px; border-radius: 20px; display: inline-block; margin-bottom: 16px; font-size: 12px; }
+        .video-tips { margin-top: 16px; font-size: 11px; color: var(--text-light); }
     </style>
 </head>
 <body class="no-context">
@@ -180,7 +187,7 @@
         <div class="lock-subtitle">Solusi Pintar Menghafal Al-Quran</div>
         <div class="lock-input-group">
             <input type="password" class="lock-input" id="lockPassword" placeholder="Masukkan PIN" maxlength="6" autocomplete="off" inputmode="numeric">
-            <button class="lock-btn lock-btn-enter" onclick="enterApp()"> Masuk</button>
+            <button class="lock-btn lock-btn-enter" onclick="enterApp()">🔓 Masuk</button>
             <div class="lock-error" id="lockError"></div>
         </div>
         <div class="lock-hint">PIN default: 1234</div>
@@ -190,7 +197,7 @@
     <div id="mainApp">
         <div class="app-header">
             <div class="header-left">
-                <div class="header-logo"></div>
+                <div class="header-logo">📖</div>
                 <div>
                     <div class="header-title">Smart Hafiz</div>
                     <div class="header-subtitle">Auto Content dari Google Drive</div>
@@ -199,14 +206,14 @@
             <div class="header-right">
                 <button class="header-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
                 <button class="header-btn" onclick="forceRefresh()" title="Force Refresh">🔄</button>
-                <button class="header-btn" onclick="navigateTo('settings')" title="Pengaturan">️</button>
+                <button class="header-btn" onclick="navigateTo('settings')" title="Pengaturan">⚙️</button>
             </div>
         </div>
         <div class="app-content" id="appContent"></div>
         <div class="bottom-nav">
             <button class="nav-item active" onclick="navigateTo('home')" id="navHome"><span class="nav-icon">🏠</span><span class="nav-label">Beranda</span></button>
-            <button class="nav-item" onclick="navigateTo('mengaji')" id="navMengaji"><span class="nav-icon"></span><span class="nav-label">Mengaji</span></button>
-            <button class="nav-item" onclick="navigateTo('cerita')" id="navCerita"><span class="nav-icon"></span><span class="nav-label">Cerita</span></button>
+            <button class="nav-item" onclick="navigateTo('mengaji')" id="navMengaji"><span class="nav-icon">📖</span><span class="nav-label">Mengaji</span></button>
+            <button class="nav-item" onclick="navigateTo('cerita')" id="navCerita"><span class="nav-icon">📚</span><span class="nav-label">Cerita</span></button>
             <button class="nav-item" onclick="navigateTo('downloads')" id="navDownloads"><span class="nav-icon">💾</span><span class="nav-label">Download</span></button>
             <button class="nav-item" onclick="navigateTo('settings')" id="navSettings"><span class="nav-icon">⚙️</span><span class="nav-label">Lainnya</span></button>
         </div>
@@ -215,7 +222,7 @@
     <!-- VIDEO PLAYER -->
     <div id="videoPlayer">
         <div class="video-container" id="videoContainer">
-            <button class="vid-btn-close" onclick="closeVideo()"></button>
+            <button class="vid-btn-close" onclick="closeVideo()">✕</button>
             <div class="video-title-bar">
                 <h3 id="videoTitle">Judul Video</h3>
             </div>
@@ -239,7 +246,7 @@
     <!-- PIN CHANGE MODAL -->
     <div id="pinModal">
         <div class="modal-box">
-            <h3> Ubah PIN</h3>
+            <h3>🔑 Ubah PIN</h3>
             <p>Masukkan PIN baru (4-6 digit)</p>
             <input type="password" class="modal-input" id="newPinInput" placeholder="PIN Baru" maxlength="6" inputmode="numeric">
             <div class="modal-buttons">
@@ -281,13 +288,11 @@
         // ===== AUTO-LOAD CONTENT FROM GOOGLE DRIVE =====
         async function loadContentFromDrive(forceRefresh = false) {
             try {
-                // Clear cache jika force refresh atau data lama 0 video
                 if (forceRefresh) {
                     localStorage.removeItem('smartHafizContent');
                     localStorage.removeItem('smartHafizContentTime');
-                    showToast('🔄 Memuat ulang dari server...');
+                    showToast(' Memuat ulang dari server...');
                 } else {
-                    // Check cache (1 hour)
                     const cachedData = localStorage.getItem('smartHafizContent');
                     const cachedTime = localStorage.getItem('smartHafizContentTime');
                     
@@ -295,7 +300,6 @@
                         const age = Date.now() - parseInt(cachedTime);
                         const cachedContent = JSON.parse(cachedData);
                         
-                        // Jika cache ada data (lebih dari 0 video), gunakan
                         if (age < 3600000 && countTotalVideos(cachedContent) > 0) {
                             CONTENT = cachedContent;
                             isLoadingContent = false;
@@ -303,14 +307,12 @@
                             updateUI();
                             return;
                         } else {
-                            // Cache expired atau 0 video, hapus
                             localStorage.removeItem('smartHafizContent');
                             localStorage.removeItem('smartHafizContentTime');
                         }
                     }
                 }
                 
-                // Fetch from Google Apps Script
                 console.log('🔄 Fetching from Google Apps Script...');
                 const response = await fetch(CONFIG.driveScriptUrl);
                 const result = await response.json();
@@ -324,7 +326,6 @@
                     
                     const totalVideos = countTotalVideos(CONTENT);
                     
-                    // Cache data hanya jika ada video
                     if (totalVideos > 0) {
                         localStorage.setItem('smartHafizContent', JSON.stringify(CONTENT));
                         localStorage.setItem('smartHafizContentTime', Date.now().toString());
@@ -342,8 +343,6 @@
                 loadError = true;
                 isLoadingContent = false;
                 debugInfo = '❌ Error: ' + error.message;
-                
-                // Fallback content
                 CONTENT = getFallbackContent();
                 showToast('⚠️ Menggunakan konten demo (offline mode)');
                 updateUI();
@@ -362,7 +361,7 @@
 
         function getFallbackContent() {
             return {
-                mengaji: { title: 'MENGAJI YUK', icon: '', color: 'bg-green', items: [] },
+                mengaji: { title: 'MENGAJI YUK', icon: '📖', color: 'bg-green', items: [] },
                 cerita: { title: 'CERITA', icon: '📚', color: 'bg-purple', items: [] },
                 lagu: { title: 'MENYANYI YUK', icon: '🎵', color: 'bg-orange', items: [] }
             };
@@ -488,7 +487,6 @@
             const timeStr = today.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
             const savedCount = CONFIG.downloadedVideos.length;
             
-            // Count total videos
             let totalVideos = 0;
             let totalCategories = 0;
             for (let key in CONTENT) {
@@ -544,7 +542,7 @@
                         </div>
                     ` : ''}
                     
-                    <div class="page-title"><span class="icon"></span> Menu Utama</div>
+                    <div class="page-title"><span class="icon">📱</span> Menu Utama</div>
                     <div class="category-grid">
                         ${categoryHTML}
                     </div>
@@ -589,7 +587,7 @@
                 }).join('');
             } else {
                 itemsHTML = `<div style="text-align:center; padding:40px; color:var(--text-light);">
-                    <div style="font-size:48px; margin-bottom:16px;">📭</div>
+                    <div style="font-size:48px; margin-bottom:16px;"></div>
                     <p>Belum ada video di kategori ini</p>
                 </div>`;
             }
@@ -617,46 +615,90 @@
             }
 
             const isSaved = CONFIG.downloadedVideos.includes(item.driveId);
-            const viewLink = `https://drive.google.com/uc?export=view&id=${item.driveId}`;
-            const downloadLink = `https://drive.google.com/uc?export=download&id=${item.driveId}`;
+            const driveId = item.driveId;
+            
+            // URL untuk streaming dan download
+            const streamUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
+            const downloadUrl = `https://drive.google.com/uc?export=download&confirm=t&id=${driveId}`;
+            const previewUrl = `https://drive.google.com/file/d/${driveId}/preview`;
 
             document.getElementById('appContent').innerHTML = `
                 <div class="fade-in">
                     <div class="back-bar"><button class="back-btn" onclick="renderCategory('${categoryKey}')">← Kembali</button></div>
                     <div class="page-title"><span class="icon">🎬</span> Detail Video</div>
-                    <div style="background:white; border-radius:16px; padding:24px; box-shadow:var(--shadow); text-align:center;">
-                        <div style="font-size:60px; margin-bottom:16px;">🎬</div>
-                        <h3 style="font-size:20px; margin-bottom:8px;">${item.name}</h3>
-                        <p style="color:var(--text-light); margin-bottom:24px; font-size:14px;">${item.desc}</p>
+                    <div class="video-detail-card">
+                        <div class="video-detail-icon"></div>
+                        <h3 class="video-detail-title">${item.name}</h3>
+                        <p class="video-detail-desc">${item.desc}</p>
                         
-                        ${item.size ? `<div style="background:#f0f0f0; padding:8px 16px; border-radius:20px; display:inline-block; margin-bottom:16px; font-size:12px;">📦 ${item.size}</div><br>` : ''}
+                        ${item.size ? `<div class="video-size-badge">📦 ${item.size}</div><br>` : ''}
                         
-                        <button class="btn-action btn-play" onclick="playVideo('${viewLink}', '${item.name}')">
+                        <button class="btn-action btn-play" onclick="playVideo('${driveId}', '${item.name.replace(/'/g, "\\'")}')">
                             ▶️ Putar Online (Streaming)
                         </button>
                         
-                        <button class="btn-action btn-download ${isSaved ? 'saved' : ''}" onclick="downloadVideo('${downloadLink}', '${item.driveId}', '${item.name}')">
+                        <button class="btn-action btn-play" style="background:#2196F3;" onclick="openPreview('${driveId}', '${item.name.replace(/'/g, "\\'")}')">
+                            ️ Buka di Google Drive
+                        </button>
+                        
+                        <button class="btn-action btn-download ${isSaved ? 'saved' : ''}" onclick="downloadVideo('${downloadUrl}', '${driveId}', '${item.name.replace(/'/g, "\\'")}')">
                             ${isSaved ? '✓ Sudah Diunduh (Unduh Ulang)' : '⬇️ Unduh untuk Offline'}
                         </button>
                         
-                        <p style="margin-top:16px; font-size:11px; color:var(--text-light);">
-                            💡 Tips: Unduh video saat ada WiFi untuk menghemat kuota. Video yang diunduh bisa diputar di galeri HP.
+                        <p class="video-tips">
+                            💡 Tips: Jika streaming gagal, coba "Buka di Google Drive" atau unduh video untuk menonton offline.
                         </p>
                     </div>
                 </div>`;
         }
 
         // ===== VIDEO & DOWNLOAD FUNCTIONS =====
-        function playVideo(url, title) {
+        function playVideo(driveId, title) {
             document.getElementById('videoTitle').textContent = title;
             const video = document.getElementById('mainVideo');
-            video.src = url;
-            video.load();
-            document.getElementById('videoPlayer').classList.add('active');
-            video.play().catch(() => {
-                showToast('️ Gagal memutar, coba unduh saja');
-                closeVideo();
-            });
+            
+            // Coba beberapa format URL
+            const urls = [
+                `https://drive.google.com/uc?export=download&id=${driveId}`,
+                `https://drive.google.com/uc?export=download&confirm=t&id=${driveId}`,
+                `https://docs.google.com/uc?export=download&id=${driveId}`
+            ];
+            
+            let currentUrlIndex = 0;
+            
+            function tryNextUrl() {
+                if (currentUrlIndex >= urls.length) {
+                    showToast('⚠️ Gagal memutar. Coba "Buka di Google Drive"');
+                    closeVideo();
+                    return;
+                }
+                
+                video.src = urls[currentUrlIndex];
+                video.load();
+                
+                video.onloadeddata = function() {
+                    document.getElementById('videoPlayer').classList.add('active');
+                    video.play().catch(() => {
+                        showToast('️ Klik play untuk memulai');
+                    });
+                };
+                
+                video.onerror = function() {
+                    console.log('❌ Failed URL:', urls[currentUrlIndex]);
+                    currentUrlIndex++;
+                    tryNextUrl();
+                };
+            }
+            
+            tryNextUrl();
+            addHafizPoints(1);
+        }
+
+        function openPreview(driveId, title) {
+            // Buka di tab baru dengan Google Drive preview
+            const previewUrl = `https://drive.google.com/file/d/${driveId}/preview`;
+            window.open(previewUrl, '_blank');
+            showToast('👁️ Video dibuka di tab baru');
             addHafizPoints(1);
         }
 
@@ -664,6 +706,8 @@
             const video = document.getElementById('mainVideo');
             video.pause();
             video.src = '';
+            video.onerror = null;
+            video.onloadeddata = null;
             document.getElementById('videoPlayer').classList.remove('active');
         }
 
@@ -673,7 +717,9 @@
                 localStorage.setItem('downloadedVideos', JSON.stringify(CONFIG.downloadedVideos));
             }
             
-            window.open(url, '_blank');
+            // Coba download dengan cara yang berbeda
+            const downloadUrl = `https://drive.google.com/uc?export=download&confirm=t&id=${driveId}`;
+            window.open(downloadUrl, '_blank');
             showToast(`⬇️ Memulai unduhan: ${name}`);
             addHafizPoints(5);
         }
@@ -715,7 +761,7 @@
                         <div class="download-list">${listHTML}</div>
                     </div>
                     <button class="btn-action btn-download" onclick="clearDownloads()" style="margin-top:16px; color:var(--accent); border-color:var(--accent);">
-                        🗑️ Hapus Riwayat Unduhan
+                        ️ Hapus Riwayat Unduhan
                     </button>
                 </div>`;
         }
@@ -734,7 +780,7 @@
             document.getElementById('appContent').innerHTML = `
                 <div class="fade-in">
                     <div class="back-bar"><button class="back-btn" onclick="goBack()">← Kembali</button></div>
-                    <div class="page-title"><span class="icon">⚙️</span> Pengaturan</div>
+                    <div class="page-title"><span class="icon">️</span> Pengaturan</div>
                     <div class="settings-group">
                         <div class="settings-item" onclick="showPinModal()">
                             <div class="settings-item-left"><div class="settings-item-icon" style="background:#e8f5e9; color:#2e7d32;"></div><div class="settings-item-text"><h4>Ubah PIN</h4><p>Ganti PIN keluar aplikasi</p></div></div><span>›</span>
@@ -750,7 +796,7 @@
                             <div class="settings-item-left"><div class="settings-item-icon" style="background:#ffebee; color:#c62828;">🗑️</div><div class="settings-item-text"><h4>Clear All Cache</h4><p>Hapus semua data cache</p></div></div><span>›</span>
                         </div>
                         <div class="settings-item" onclick="navigateTo('downloads')">
-                            <div class="settings-item-left"><div class="settings-item-icon" style="background:#f3e5f5; color:#7b1fa2;"></div><div class="settings-item-text"><h4>Riwayat Unduhan</h4><p>${CONFIG.downloadedVideos.length} video tersimpan</p></div></div><span>›</span>
+                            <div class="settings-item-left"><div class="settings-item-icon" style="background:#f3e5f5; color:#7b1fa2;">💾</div><div class="settings-item-text"><h4>Riwayat Unduhan</h4><p>${CONFIG.downloadedVideos.length} video tersimpan</p></div></div><span>›</span>
                         </div>
                         <div class="settings-item" onclick="requestExit()">
                             <div class="settings-item-left"><div class="settings-item-icon" style="background:#ffebee; color:#c62828;">🚪</div><div class="settings-item-text"><h4>Keluar Aplikasi</h4><p>Memerlukan PIN</p></div></div><span>›</span>
@@ -827,7 +873,7 @@
                 requestFullscreen();
                 showToast('Selamat datang di Smart Hafiz! 📖');
             } else {
-                document.getElementById('lockError').textContent = ' PIN salah, coba lagi';
+                document.getElementById('lockError').textContent = '❌ PIN salah, coba lagi';
                 document.getElementById('lockPassword').value = '';
                 setTimeout(() => { document.getElementById('lockError').textContent = ''; }, 2000);
             }
