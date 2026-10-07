@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1a7a4c">
-    <title>Smart Hafiz - Download & Offline</title>
+    <title>Smart Hafiz - Streaming Tanpa Login</title>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
@@ -40,7 +40,7 @@
         
         .category-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
         .category-card { background: var(--card-bg); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); cursor: pointer; text-align: center; transition: all 0.3s; }
-        .category-card:active { transform: scale(0.95); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .category-card:active { transform: scale(0.95); }
         .category-icon { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 10px; }
         .category-name { font-size: 13px; font-weight: 600; }
         .category-count { font-size: 11px; color: var(--text-light); margin-top: 4px; }
@@ -77,6 +77,16 @@
         .video-title { font-size: 20px; margin-bottom: 8px; }
         .video-desc { color: var(--text-light); margin-bottom: 24px; font-size: 14px; }
         .video-size { background: #f0f0f0; padding: 8px 16px; border-radius: 20px; display: inline-block; margin-bottom: 16px; font-size: 12px; }
+        
+        /* STREAMING PLAYER */
+        #streamingPlayer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5000; display: none; flex-direction: column; }
+        #streamingPlayer.active { display: flex; }
+        .player-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
+        .player-title { font-size: 14px; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; }
+        .player-btn { width: 36px; height: 36px; border: none; border-radius: 50%; background: rgba(255,255,255,0.2); color: white; font-size: 18px; cursor: pointer; }
+        .player-btn:active { background: rgba(255,255,255,0.4); }
+        .player-container { flex: 1; width: 100%; position: relative; }
+        .player-container iframe { width: 100%; height: 100%; border: none; }
         
         .storage-info { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: var(--radius); padding: 20px; color: white; margin-bottom: 16px; }
         .storage-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.3); border-radius: 4px; margin: 10px 0; overflow: hidden; }
@@ -117,7 +127,7 @@
     <div id="lockScreen">
         <div class="lock-logo">📖</div>
         <div class="lock-title">Smart Hafiz</div>
-        <div class="lock-subtitle">Download & Offline Mode</div>
+        <div class="lock-subtitle">Streaming Tanpa Login</div>
         <input type="password" class="lock-input" id="lockPassword" placeholder="PIN (default: 1234)" maxlength="6" inputmode="numeric">
         <button class="lock-btn" onclick="enterApp()">🔓 Masuk</button>
         <div style="color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 20px;">PIN default: 1234</div>
@@ -127,10 +137,10 @@
     <div id="mainApp">
         <div class="app-header">
             <div class="header-left">
-                <div class="header-logo"></div>
+                <div class="header-logo">📖</div>
                 <div>
                     <div class="header-title">Smart Hafiz</div>
-                    <div class="header-subtitle">Download & Offline</div>
+                    <div class="header-subtitle">Streaming Tanpa Login</div>
                 </div>
             </div>
             <div class="header-right">
@@ -147,7 +157,7 @@
                 <span class="nav-label">Beranda</span>
             </button>
             <button class="nav-item" onclick="navigateTo('mengaji')" id="navMengaji">
-                <span class="nav-icon"></span>
+                <span class="nav-icon">📖</span>
                 <span class="nav-label">Mengaji</span>
             </button>
             <button class="nav-item" onclick="navigateTo('cerita')" id="navCerita">
@@ -162,6 +172,18 @@
                 <span class="nav-icon">⚙️</span>
                 <span class="nav-label">Lainnya</span>
             </button>
+        </div>
+    </div>
+
+    <!-- STREAMING PLAYER - IFRAME EMBED -->
+    <div id="streamingPlayer">
+        <div class="player-header">
+            <div class="player-title" id="playerTitle">Judul Video</div>
+            <button class="player-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
+            <button class="player-btn" onclick="closePlayer()" title="Tutup">✕</button>
+        </div>
+        <div class="player-container">
+            <iframe id="playerIframe" allowfullscreen allow="autoplay; encrypted-media; fullscreen"></iframe>
         </div>
     </div>
 
@@ -240,7 +262,7 @@
             loadContentFromDrive(true);
         }
 
-        // ===== NAVIGATION - FIXED: Semua kategori termasuk akhlaq & pengetahuan =====
+        // ===== NAVIGATION =====
         function navigateTo(page, data) {
             navigationStack.push({ page: currentPage, data: data });
             currentPage = page;
@@ -366,8 +388,7 @@
                     };
                     
                     return `
-                        <div class="submenu-item" style="animation-delay: ${index * 0.05}s" 
-                             onclick="navigateTo('videoDetail', {category: '${key}', itemId: '${item.id}'})">
+                        <div class="submenu-item" onclick="navigateTo('videoDetail', {category: '${key}', itemId: '${item.id}'})">
                             <div class="submenu-icon" style="background:${colorMap[key] || '#1a7a4c'}; color:white;">🎬</div>
                             <div class="submenu-text">
                                 <div class="submenu-title">
@@ -410,84 +431,78 @@
             document.getElementById('appContent').innerHTML = `
                 <button class="back-btn" onclick="renderCategory('${categoryKey}')">← Kembali</button>
                 <div class="video-detail-card">
-                    <div class="video-icon"></div>
+                    <div class="video-icon">🎬</div>
                     <h3 class="video-title">${item.name}</h3>
                     <p class="video-desc">${item.desc || 'Video edukasi Islami'}</p>
-                    ${item.size ? `<div class="video-size"> ${item.size}</div>` : ''}
+                    ${item.size ? `<div class="video-size">📦 ${item.size}</div>` : ''}
                     
-                    <button class="btn-action btn-primary" onclick="playVideo('${driveId}', '${item.name.replace(/'/g, "\\'")}')">
-                        ▶️ Putar Video Sekarang
+                    <button class="btn-action btn-primary" onclick="streamVideo('${driveId}', '${item.name.replace(/'/g, "\\'")}')">
+                        ▶️ Streaming Langsung (Tanpa Login)
                     </button>
                     
-                    <button class="btn-action btn-secondary" onclick="openInDrive('${driveId}')">
-                         Buka di Google Drive
+                    <button class="btn-action btn-secondary" onclick="downloadVideo('${driveId}', '${item.name.replace(/'/g, "\\'")}')">
+                        ⬇️ Download untuk Offline
                     </button>
                     
                     <button class="btn-action btn-download ${isDownloaded ? 'downloaded' : ''}" 
                             onclick="${isDownloaded ? `deleteVideo('${driveId}', '${item.name.replace(/'/g, "\\'")}')` : `downloadVideo('${driveId}', '${item.name.replace(/'/g, "\\'")}')`}">
-                        ${isDownloaded ? '✓ Sudah Tersimpan (Klik untuk Hapus)' : '⬇️ Download untuk Offline'}
+                        ${isDownloaded ? '✓ Sudah Tersimpan (Hapus)' : '📥 Simpan ke Daftar'}
                     </button>
                     
-                    <div style="margin-top: 16px; padding: 12px; background: #fff3cd; border-radius: 8px; font-size: 12px; color: #856404;">
-                         <strong>Tips:</strong> Download video untuk menonton tanpa internet. Video tersimpan di folder Downloads HP Anda.
+                    <div style="margin-top: 16px; padding: 12px; background: #e3f2fd; border-radius: 8px; font-size: 12px; color: #1565c0;">
+                         <strong>Streaming:</strong> Video diputar langsung tanpa perlu login Google. Pastikan video sudah di-set "Public" di Google Drive.
                     </div>
                 </div>
             `;
         }
 
-        // ===== VIDEO PLAYBACK =====
-        function playVideo(driveId, title) {
-            // Buka di tab baru dengan Google Drive preview
-            const previewUrl = `https://drive.google.com/file/d/${driveId}/preview`;
-            window.open(previewUrl, '_blank');
-            showToast('▶️ Memutar video...');
-        }
-
-        function openInDrive(driveId) {
-            const url = `https://drive.google.com/file/d/${driveId}/view`;
-            window.open(url, '_blank');
-            showToast('🔗 Dibuka di Google Drive');
-        }
-
-        // ===== DOWNLOAD MANAGER =====
-        function downloadVideo(driveId, name) {
-            // Trigger download
-            const downloadUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
+        // ===== STREAMING PLAYER =====
+        function streamVideo(driveId, title) {
+            document.getElementById('playerTitle').textContent = title;
+            const iframe = document.getElementById('playerIframe');
             
-            // Buka di tab baru untuk trigger download
+            // Gunakan Google Drive preview URL (tidak perlu login jika video public)
+            const embedUrl = `https://drive.google.com/file/d/${driveId}/preview`;
+            iframe.src = embedUrl;
+            
+            document.getElementById('streamingPlayer').classList.add('active');
+            showToast('▶️ Streaming dimulai...');
+        }
+
+        function closePlayer() {
+            const iframe = document.getElementById('playerIframe');
+            iframe.src = '';
+            document.getElementById('streamingPlayer').classList.remove('active');
+        }
+
+        function toggleFullscreen() {
+            const iframe = document.getElementById('playerIframe');
+            if (iframe.requestFullscreen) {
+                iframe.requestFullscreen();
+            } else if (iframe.webkitRequestFullscreen) {
+                iframe.webkitRequestFullscreen();
+            }
+        }
+
+        // ===== DOWNLOAD =====
+        function downloadVideo(driveId, name) {
+            const downloadUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
             window.open(downloadUrl, '_blank');
             
-            // Tambahkan ke daftar downloaded
             if (!downloadedVideos.includes(driveId)) {
                 downloadedVideos.push(driveId);
                 localStorage.setItem('downloadedVideos', JSON.stringify(downloadedVideos));
             }
             
-            showToast(`️ Memulai download: ${name}`);
-            
-            // Refresh halaman setelah 2 detik
-            setTimeout(() => {
-                if (currentPage === 'videoDetail') {
-                    // Re-render untuk update button
-                    const prevPage = navigationStack[navigationStack.length - 2];
-                    if (prevPage) {
-                        currentPage = prevPage.page;
-                        const data = prevPage.data;
-                        if (data && data.category && data.itemId) {
-                            showVideoDetail(data.category, data.itemId);
-                        }
-                    }
-                }
-            }, 2000);
+            showToast(`⬇️ Memulai download: ${name}`);
         }
 
         function deleteVideo(driveId, name) {
             if (confirm(`Hapus "${name}" dari daftar tersimpan?`)) {
                 downloadedVideos = downloadedVideos.filter(id => id !== driveId);
                 localStorage.setItem('downloadedVideos', JSON.stringify(downloadedVideos));
-                showToast('🗑️ Video dihapus dari daftar');
+                showToast('️ Video dihapus');
                 
-                // Re-render
                 const prevPage = navigationStack[navigationStack.length - 2];
                 if (prevPage && prevPage.data) {
                     showVideoDetail(prevPage.data.category, prevPage.data.itemId);
@@ -497,12 +512,12 @@
 
         function renderDownloads() {
             let html = '<button class="back-btn" onclick="goBack()">← Kembali</button>';
-            html += '<div class="page-title"> Video Tersimpan</div>';
+            html += '<div class="page-title">💾 Video Tersimpan</div>';
             
             if (downloadedVideos.length === 0) {
                 html += `
                     <div class="empty-state">
-                        <div class="empty-icon"></div>
+                        <div class="empty-icon">📭</div>
                         <h3>Belum ada video yang diunduh</h3>
                         <p>Pilih video dan klik "Download untuk Offline"</p>
                     </div>
@@ -530,7 +545,7 @@
                                 <div class="submenu-desc">${videoInfo.category}</div>
                             </div>
                             <button class="btn-action" style="width: auto; padding: 8px 16px; font-size: 12px; margin: 0;" 
-                                    onclick="playVideo('${driveId}', '${videoInfo.name.replace(/'/g, "\\'")}')">▶️</button>
+                                    onclick="streamVideo('${driveId}', '${videoInfo.name.replace(/'/g, "\\'")}')">▶️</button>
                         </div>
                     `;
                 });
@@ -559,7 +574,7 @@
         function renderSettings() {
             document.getElementById('appContent').innerHTML = `
                 <button class="back-btn" onclick="goBack()">← Kembali</button>
-                <div class="page-title">⚙️ Pengaturan</div>
+                <div class="page-title">️ Pengaturan</div>
                 <div class="settings-group">
                     <div class="settings-item" onclick="forceRefresh()">
                         <div class="settings-item-left">
@@ -594,7 +609,7 @@
                 </div>
                 <div style="text-align:center; padding:20px; color:var(--text-light); font-size:12px;">
                     Smart Hafiz v2.0<br>
-                    Download & Offline Mode<br>
+                    Streaming Tanpa Login<br>
                     © 2024
                 </div>
             `;
@@ -602,15 +617,12 @@
 
         // ===== UTILITIES =====
         function setupEventListeners() {
-            // Prevent back button
             history.pushState(null, null, location.href);
             window.addEventListener('popstate', () => {
                 history.pushState(null, null, location.href);
                 if (currentPage !== 'home') goBack();
-                else showToast(' Tekan tombol Home untuk keluar');
             });
 
-            // Prevent context menu
             document.addEventListener('contextmenu', e => e.preventDefault());
         }
 
