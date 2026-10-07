@@ -6,7 +6,6 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1a7a4c">
-    <meta name="description" content="Smart Hafiz - Download & Offline Mode">
     <title>Smart Hafiz - Download & Offline</title>
     
     <style>
@@ -20,39 +19,44 @@
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
         .lock-title { color: white; font-size: 28px; font-weight: bold; margin-bottom: 5px; }
         .lock-subtitle { color: rgba(255,255,255,0.8); font-size: 14px; margin-bottom: 30px; }
-        .lock-input { width: 250px; padding: 15px 20px; border: none; border-radius: 50px; font-size: 18px; text-align: center; margin-bottom: 15px; }
+        .lock-input { width: 250px; padding: 15px 20px; border: none; border-radius: 50px; font-size: 18px; text-align: center; margin-bottom: 15px; outline: none; }
         .lock-btn { padding: 12px 40px; border: none; border-radius: 50px; font-size: 16px; font-weight: bold; background: var(--secondary); color: white; cursor: pointer; }
+        .lock-btn:active { transform: scale(0.95); }
         
         #mainApp { display: none; height: 100vh; flex-direction: column; }
         #mainApp.active { display: flex; }
-        .app-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
+        .app-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
         .header-left { display: flex; align-items: center; gap: 10px; }
         .header-logo { width: 36px; height: 36px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
         .header-title { font-size: 18px; font-weight: bold; }
         .header-subtitle { font-size: 10px; opacity: 0.8; }
         .header-right { display: flex; gap: 8px; }
         .header-btn { width: 36px; height: 36px; border: none; border-radius: 50%; background: rgba(255,255,255,0.2); color: white; font-size: 18px; cursor: pointer; }
+        .header-btn:active { background: rgba(255,255,255,0.4); }
         
         .app-content { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 80px; }
+        .app-content::-webkit-scrollbar { width: 0; }
         .page-title { font-size: 22px; font-weight: bold; color: var(--primary-dark); margin-bottom: 16px; }
         
         .category-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
-        .category-card { background: var(--card-bg); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); cursor: pointer; text-align: center; }
-        .category-card:active { transform: scale(0.95); }
+        .category-card { background: var(--card-bg); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); cursor: pointer; text-align: center; transition: all 0.3s; }
+        .category-card:active { transform: scale(0.95); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
         .category-icon { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 10px; }
         .category-name { font-size: 13px; font-weight: 600; }
         .category-count { font-size: 11px; color: var(--text-light); margin-top: 4px; }
         
         .submenu-list { display: flex; flex-direction: column; gap: 10px; }
-        .submenu-item { background: var(--card-bg); border-radius: 12px; padding: 14px 16px; box-shadow: var(--shadow); cursor: pointer; display: flex; align-items: center; gap: 12px; border-left: 4px solid var(--primary); }
-        .submenu-item:active { background: #f0fff4; }
-        .submenu-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+        .submenu-item { background: var(--card-bg); border-radius: 12px; padding: 14px 16px; box-shadow: var(--shadow); cursor: pointer; display: flex; align-items: center; gap: 12px; border-left: 4px solid var(--primary); transition: all 0.3s; }
+        .submenu-item:active { transform: translateX(5px); background: #f0fff4; }
+        .submenu-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
         .submenu-text { flex: 1; }
-        .submenu-title { font-size: 14px; font-weight: 600; }
-        .submenu-desc { font-size: 11px; color: var(--text-light); }
-        .badge-downloaded { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: #e8f5e9; color: #2e7d32; margin-left: 8px; }
+        .submenu-title { font-size: 14px; font-weight: 600; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+        .submenu-desc { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+        .badge-downloaded { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: #e8f5e9; color: #2e7d32; }
+        .badge-online { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: #e3f2fd; color: #1565c0; }
         
         .back-btn { padding: 8px 16px; border: none; border-radius: 50px; background: var(--primary); color: white; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 16px; }
+        .back-btn:active { background: var(--primary-dark); }
         
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 8px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 200; }
         .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 12px; cursor: pointer; border: none; background: none; color: var(--text-light); }
@@ -60,12 +64,13 @@
         .nav-icon { font-size: 22px; }
         .nav-label { font-size: 10px; font-weight: 600; }
         
-        .btn-action { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+        .btn-action { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-action:active { transform: scale(0.98); }
         .btn-primary { background: var(--primary); color: white; }
         .btn-secondary { background: #2196F3; color: white; }
         .btn-download { background: white; color: var(--primary); border: 2px solid var(--primary); }
-        .btn-download.downloading { background: #ff9800; color: white; border-color: #ff9800; }
         .btn-download.downloaded { background: #4CAF50; color: white; border-color: #4CAF50; }
+        .btn-danger { background: #f44336; color: white; }
         
         .video-detail-card { background: white; border-radius: 16px; padding: 24px; box-shadow: var(--shadow); text-align: center; margin-bottom: 16px; }
         .video-icon { font-size: 60px; margin-bottom: 16px; }
@@ -73,17 +78,11 @@
         .video-desc { color: var(--text-light); margin-bottom: 24px; font-size: 14px; }
         .video-size { background: #f0f0f0; padding: 8px 16px; border-radius: 20px; display: inline-block; margin-bottom: 16px; font-size: 12px; }
         
-        .download-progress { width: 100%; height: 6px; background: #f0f0f0; border-radius: 3px; margin: 10px 0; overflow: hidden; display: none; }
-        .download-progress-bar { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s; }
-        
-        .offline-indicator { position: fixed; top: 10px; right: 10px; background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; display: none; z-index: 1000; }
-        .offline-indicator.show { display: block; }
-        
         .storage-info { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: var(--radius); padding: 20px; color: white; margin-bottom: 16px; }
         .storage-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.3); border-radius: 4px; margin: 10px 0; overflow: hidden; }
         .storage-fill { height: 100%; background: white; border-radius: 4px; transition: width 0.5s; }
         
-        .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(100px); background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 50px; font-size: 14px; z-index: 8000; transition: transform 0.3s; }
+        .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(100px); background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 50px; font-size: 14px; z-index: 8000; transition: transform 0.3s; white-space: nowrap; }
         .toast.show { transform: translateX(-50%) translateY(0); }
         
         .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
@@ -94,6 +93,14 @@
         .empty-state { text-align: center; padding: 40px; color: var(--text-light); }
         .empty-icon { font-size: 60px; margin-bottom: 16px; }
         
+        .settings-group { background: white; border-radius: var(--radius); margin-bottom: 16px; overflow: hidden; box-shadow: var(--shadow); }
+        .settings-item { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
+        .settings-item:last-child { border-bottom: none; }
+        .settings-item-left { display: flex; align-items: center; gap: 12px; }
+        .settings-item-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .settings-item-text h4 { font-size: 14px; }
+        .settings-item-text p { font-size: 11px; color: var(--text-light); }
+        
         @media (min-width: 500px) { .category-grid { grid-template-columns: repeat(3, 1fr); } }
     </style>
 </head>
@@ -103,6 +110,7 @@
     <div class="loading-overlay" id="loadingOverlay">
         <div class="spinner"></div>
         <div style="font-size: 18px; color: var(--primary); font-weight: 600;">Memuat Konten...</div>
+        <div style="font-size: 13px; color: var(--text-light); margin-top: 8px;">Mengambil video dari Google Drive</div>
     </div>
 
     <!-- LOCK SCREEN -->
@@ -110,27 +118,26 @@
         <div class="lock-logo">📖</div>
         <div class="lock-title">Smart Hafiz</div>
         <div class="lock-subtitle">Download & Offline Mode</div>
-        <input type="password" class="lock-input" id="lockPassword" placeholder="PIN (default: 1234)" maxlength="6">
-        <button class="lock-btn" onclick="enterApp()">Masuk</button>
+        <input type="password" class="lock-input" id="lockPassword" placeholder="PIN (default: 1234)" maxlength="6" inputmode="numeric">
+        <button class="lock-btn" onclick="enterApp()">🔓 Masuk</button>
+        <div style="color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 20px;">PIN default: 1234</div>
     </div>
 
     <!-- MAIN APP -->
     <div id="mainApp">
         <div class="app-header">
             <div class="header-left">
-                <div class="header-logo">📖</div>
+                <div class="header-logo"></div>
                 <div>
                     <div class="header-title">Smart Hafiz</div>
                     <div class="header-subtitle">Download & Offline</div>
                 </div>
             </div>
             <div class="header-right">
-                <button class="header-btn" onclick="checkOnlineStatus()" id="onlineBtn"></button>
-                <button class="header-btn" onclick="navigateTo('downloads')">💾</button>
+                <button class="header-btn" onclick="forceRefresh()" title="Refresh">🔄</button>
+                <button class="header-btn" onclick="navigateTo('settings')" title="Settings">⚙️</button>
             </div>
         </div>
-        
-        <div class="offline-indicator" id="offlineIndicator"> Mode Offline</div>
         
         <div class="app-content" id="appContent"></div>
         
@@ -140,7 +147,7 @@
                 <span class="nav-label">Beranda</span>
             </button>
             <button class="nav-item" onclick="navigateTo('mengaji')" id="navMengaji">
-                <span class="nav-icon">📖</span>
+                <span class="nav-icon"></span>
                 <span class="nav-label">Mengaji</span>
             </button>
             <button class="nav-item" onclick="navigateTo('cerita')" id="navCerita">
@@ -164,8 +171,7 @@
         // ===== CONFIGURATION =====
         const CONFIG = {
             pin: localStorage.getItem('smartHafizPIN') || '1234',
-            driveScriptUrl: 'https://script.google.com/macros/s/AKfycbztHEosCVhPgBmmNkrP5QFjkCixNeQQO5RquR1t-w0eklc4KwnPc3fvH3HOTkdbFN-Nrg/exec',
-            maxStorage: 500 * 1024 * 1024 // 500MB max storage
+            driveScriptUrl: 'https://script.google.com/macros/s/AKfycbztHEosCVhPgBmmNkrP5QFjkCixNeQQO5RquR1t-w0eklc4KwnPc3fvH3HOTkdbFN-Nrg/exec'
         };
 
         // ===== STATE =====
@@ -173,49 +179,27 @@
         let currentPage = 'home';
         let navigationStack = [];
         let downloadedVideos = JSON.parse(localStorage.getItem('downloadedVideos') || '[]');
-        let downloadQueue = [];
-        let isOnline = navigator.onLine;
 
         // ===== INIT =====
-        document.addEventListener('DOMContentLoaded', async function() {
-            await initServiceWorker();
+        document.addEventListener('DOMContentLoaded', function() {
             loadContentFromDrive();
             setupEventListeners();
-            checkOnlineStatus();
+            
+            document.getElementById('lockPassword').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') enterApp();
+            });
         });
 
-        // ===== SERVICE WORKER FOR OFFLINE =====
-        async function initServiceWorker() {
-            if ('serviceWorker' in navigator) {
-                try {
-                    const swCode = `
-                        self.addEventListener('install', e => {
-                            self.skipWaiting();
-                        });
-                        
-                        self.addEventListener('fetch', e => {
-                            e.respondWith(
-                                fetch(e.request).catch(() => {
-                                    return new Response('Offline');
-                                })
-                            );
-                        });
-                    `;
-                    const blob = new Blob([swCode], { type: 'application/javascript' });
-                    const swUrl = URL.createObjectURL(blob);
-                    await navigator.serviceWorker.register(swUrl);
-                    console.log('✅ Service Worker registered');
-                } catch (error) {
-                    console.log('️ Service Worker failed:', error);
-                }
-            }
-        }
-
         // ===== CONTENT LOADING =====
-        async function loadContentFromDrive() {
+        async function loadContentFromDrive(forceRefresh = false) {
             try {
+                if (forceRefresh) {
+                    localStorage.removeItem('smartHafizContent');
+                    showToast('🔄 Memuat ulang...');
+                }
+                
                 const cached = localStorage.getItem('smartHafizContent');
-                if (cached) {
+                if (cached && !forceRefresh) {
                     CONTENT = JSON.parse(cached);
                     updateUI();
                     return;
@@ -227,14 +211,23 @@
                 if (result.success && result.data) {
                     CONTENT = result.data;
                     localStorage.setItem('smartHafizContent', JSON.stringify(CONTENT));
-                    showToast(`✅ ${result.totalVideos} video dimuat!`);
+                    const total = countTotalVideos();
+                    showToast(`✅ ${total} video dimuat!`);
                     updateUI();
                 }
             } catch (error) {
                 console.error('Load error:', error);
-                showToast('⚠️ Menggunakan mode offline');
+                showToast('⚠️ Menggunakan cache');
                 updateUI();
             }
+        }
+
+        function countTotalVideos() {
+            let count = 0;
+            for (let key in CONTENT) {
+                if (CONTENT[key].items) count += CONTENT[key].items.length;
+            }
+            return count;
         }
 
         function updateUI() {
@@ -242,7 +235,12 @@
             if (currentPage === 'home') renderHome();
         }
 
-        // ===== NAVIGATION =====
+        function forceRefresh() {
+            showToast('🔄 Force refresh...');
+            loadContentFromDrive(true);
+        }
+
+        // ===== NAVIGATION - FIXED: Semua kategori termasuk akhlaq & pengetahuan =====
         function navigateTo(page, data) {
             navigationStack.push({ page: currentPage, data: data });
             currentPage = page;
@@ -254,9 +252,12 @@
                 case 'cerita': renderCategory('cerita'); break;
                 case 'lagu': renderCategory('lagu'); break;
                 case 'film': renderCategory('film'); break;
+                case 'akhlaq': renderCategory('akhlaq'); break;
+                case 'pengetahuan': renderCategory('pengetahuan'); break;
                 case 'downloads': renderDownloads(); break;
                 case 'settings': renderSettings(); break;
                 case 'videoDetail': showVideoDetail(data.category, data.itemId); break;
+                default: renderHome();
             }
         }
 
@@ -265,40 +266,62 @@
                 const prev = navigationStack.pop();
                 currentPage = prev.page;
                 updateNavActive();
+                
                 if (currentPage === 'home') renderHome();
-                else if (['mengaji','cerita','lagu','film'].includes(currentPage)) renderCategory(currentPage);
+                else if (['mengaji','cerita','lagu','film','akhlaq','pengetahuan'].includes(currentPage)) {
+                    renderCategory(currentPage);
+                }
                 else if (currentPage === 'downloads') renderDownloads();
                 else if (currentPage === 'settings') renderSettings();
+            } else {
+                renderHome();
             }
         }
 
         function updateNavActive() {
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            const navMap = { 'home': 'navHome', 'mengaji': 'navMengaji', 'cerita': 'navCerita', 'downloads': 'navDownloads', 'settings': 'navSettings' };
+            const navMap = { 
+                'home': 'navHome', 
+                'mengaji': 'navMengaji', 
+                'cerita': 'navCerita', 
+                'lagu': 'navCerita',
+                'film': 'navCerita',
+                'akhlaq': 'navCerita',
+                'pengetahuan': 'navCerita',
+                'downloads': 'navDownloads', 
+                'settings': 'navSettings' 
+            };
             if (navMap[currentPage]) document.getElementById(navMap[currentPage]).classList.add('active');
         }
 
         // ===== RENDER PAGES =====
         function renderHome() {
             navigationStack = [];
-            let totalVideos = 0, totalCategories = 0;
-            for (let key in CONTENT) {
-                if (CONTENT[key].items) {
-                    totalVideos += CONTENT[key].items.length;
-                    totalCategories++;
-                }
-            }
-
+            let totalVideos = 0;
+            
             let categoryHTML = '';
             for (let key in CONTENT) {
-                const count = CONTENT[key].items ? CONTENT[key].items.length : 0;
+                const category = CONTENT[key];
+                const count = category.items ? category.items.length : 0;
+                const saved = downloadedVideos.filter(id => category.items?.some(i => i.driveId === id)).length;
+                totalVideos += count;
+                
+                const colorMap = {
+                    'mengaji': '#1a7a4c',
+                    'cerita': '#7b1fa2',
+                    'lagu': '#e65100',
+                    'film': '#c62828',
+                    'akhlaq': '#ad1457',
+                    'pengetahuan': '#1565c0'
+                };
+                
                 categoryHTML += `
                     <div class="category-card" onclick="navigateTo('${key}')">
-                        <div class="category-icon" style="background:var(--${CONTENT[key].color?.replace('bg-', '') || 'primary'}); color:white;">
-                            ${CONTENT[key].icon || '📁'}
+                        <div class="category-icon" style="background:${colorMap[key] || '#1a7a4c'}; color:white;">
+                            ${category.icon || '📁'}
                         </div>
-                        <div class="category-name">${CONTENT[key].title}</div>
-                        <div class="category-count">${count} video • ${downloadedVideos.filter(id => CONTENT[key].items?.some(i => i.driveId === id)).length} tersimpan</div>
+                        <div class="category-name">${category.title}</div>
+                        <div class="category-count">${count} video • ${saved} tersimpan</div>
                     </div>
                 `;
             }
@@ -310,7 +333,7 @@
                         ${downloadedVideos.length} video tersimpan
                     </div>
                     <div class="storage-bar">
-                        <div class="storage-fill" style="width: ${Math.min((downloadedVideos.length / totalVideos) * 100, 100)}%"></div>
+                        <div class="storage-fill" style="width: ${totalVideos > 0 ? (downloadedVideos.length / totalVideos) * 100 : 0}%"></div>
                     </div>
                     <div style="font-size: 12px; opacity: 0.9;">
                         ${downloadedVideos.length} dari ${totalVideos} video
@@ -324,39 +347,62 @@
 
         function renderCategory(key) {
             const category = CONTENT[key];
-            if (!category) return;
+            if (!category) {
+                showToast('Kategori tidak ditemukan');
+                return;
+            }
             
             let itemsHTML = '';
             if (category.items && category.items.length > 0) {
                 itemsHTML = category.items.map((item, index) => {
                     const isDownloaded = downloadedVideos.includes(item.driveId);
+                    const colorMap = {
+                        'mengaji': '#1a7a4c',
+                        'cerita': '#7b1fa2',
+                        'lagu': '#e65100',
+                        'film': '#c62828',
+                        'akhlaq': '#ad1457',
+                        'pengetahuan': '#1565c0'
+                    };
+                    
                     return `
-                        <div class="submenu-item" onclick="navigateTo('videoDetail', {category: '${key}', itemId: '${item.id}'})">
-                            <div class="submenu-icon" style="background:var(--${category.color?.replace('bg-', '') || 'primary'}); color:white;">🎬</div>
+                        <div class="submenu-item" style="animation-delay: ${index * 0.05}s" 
+                             onclick="navigateTo('videoDetail', {category: '${key}', itemId: '${item.id}'})">
+                            <div class="submenu-icon" style="background:${colorMap[key] || '#1a7a4c'}; color:white;">🎬</div>
                             <div class="submenu-text">
                                 <div class="submenu-title">
                                     ${item.name}
-                                    ${isDownloaded ? '<span class="badge-downloaded">✓ Tersimpan</span>' : ''}
+                                    ${isDownloaded ? '<span class="badge-downloaded">✓ Tersimpan</span>' : '<span class="badge-online">Online</span>'}
                                 </div>
-                                <div class="submenu-desc">${item.desc || ''} ${item.size ? '• ' + item.size : ''}</div>
+                                <div class="submenu-desc">${item.desc || 'Video edukasi'} ${item.size ? '• ' + item.size : ''}</div>
                             </div>
-                            <span>›</span>
+                            <span style="font-size: 18px; color: var(--text-light);">›</span>
                         </div>
                     `;
                 }).join('');
+            } else {
+                itemsHTML = `<div class="empty-state"><div class="empty-icon">📭</div><p>Belum ada video di kategori ini</p></div>`;
             }
 
             document.getElementById('appContent').innerHTML = `
                 <button class="back-btn" onclick="goBack()">← Kembali</button>
-                <div class="page-title">${category.title}</div>
+                <div class="page-title">${category.icon || '📁'} ${category.title}</div>
                 <div class="submenu-list">${itemsHTML}</div>
             `;
         }
 
         function showVideoDetail(categoryKey, itemId) {
             const category = CONTENT[categoryKey];
-            const item = category?.items?.find(i => i.id === itemId);
-            if (!item) return;
+            if (!category || !category.items) {
+                showToast('Video tidak ditemukan');
+                return;
+            }
+            
+            const item = category.items.find(i => i.id === itemId);
+            if (!item) {
+                showToast('Video tidak ditemukan');
+                return;
+            }
 
             const isDownloaded = downloadedVideos.includes(item.driveId);
             const driveId = item.driveId;
@@ -366,29 +412,24 @@
                 <div class="video-detail-card">
                     <div class="video-icon"></div>
                     <h3 class="video-title">${item.name}</h3>
-                    <p class="video-desc">${item.desc || ''}</p>
-                    ${item.size ? `<div class="video-size">📦 ${item.size}</div>` : ''}
+                    <p class="video-desc">${item.desc || 'Video edukasi Islami'}</p>
+                    ${item.size ? `<div class="video-size"> ${item.size}</div>` : ''}
                     
-                    <div class="download-progress" id="downloadProgress">
-                        <div class="download-progress-bar" id="downloadProgressBar"></div>
-                    </div>
-                    
-                    <button class="btn-action btn-primary" onclick="playVideo('${driveId}', '${item.name}')">
-                        ▶️ Putar Video
+                    <button class="btn-action btn-primary" onclick="playVideo('${driveId}', '${item.name.replace(/'/g, "\\'")}')">
+                        ▶️ Putar Video Sekarang
                     </button>
                     
                     <button class="btn-action btn-secondary" onclick="openInDrive('${driveId}')">
-                        🔗 Buka di Google Drive
+                         Buka di Google Drive
                     </button>
                     
                     <button class="btn-action btn-download ${isDownloaded ? 'downloaded' : ''}" 
-                            id="downloadBtn" 
-                            onclick="${isDownloaded ? 'deleteVideo' : 'downloadVideo'}('${driveId}', '${item.name.replace(/'/g, "\\'")}')">
-                        ${isDownloaded ? '✓ Sudah Tersimpan (Hapus)' : '⬇️ Download untuk Offline'}
+                            onclick="${isDownloaded ? `deleteVideo('${driveId}', '${item.name.replace(/'/g, "\\'")}')` : `downloadVideo('${driveId}', '${item.name.replace(/'/g, "\\'")}')`}">
+                        ${isDownloaded ? '✓ Sudah Tersimpan (Klik untuk Hapus)' : '⬇️ Download untuk Offline'}
                     </button>
                     
                     <div style="margin-top: 16px; padding: 12px; background: #fff3cd; border-radius: 8px; font-size: 12px; color: #856404;">
-                         <strong>Tips:</strong> Download video untuk menonton tanpa internet. Video tersimpan di memori HP Anda.
+                         <strong>Tips:</strong> Download video untuk menonton tanpa internet. Video tersimpan di folder Downloads HP Anda.
                     </div>
                 </div>
             `;
@@ -396,107 +437,67 @@
 
         // ===== VIDEO PLAYBACK =====
         function playVideo(driveId, title) {
-            const isDownloaded = downloadedVideos.includes(driveId);
-            
-            if (isDownloaded) {
-                // Play from cache/storage
-                const cachedUrl = `https://drive.google.com/file/d/${driveId}/preview`;
-                window.open(cachedUrl, '_blank');
-            } else {
-                // Stream online
-                const streamUrl = `https://drive.google.com/file/d/${driveId}/preview`;
-                window.open(streamUrl, '_blank');
-            }
+            // Buka di tab baru dengan Google Drive preview
+            const previewUrl = `https://drive.google.com/file/d/${driveId}/preview`;
+            window.open(previewUrl, '_blank');
+            showToast('▶️ Memutar video...');
         }
 
         function openInDrive(driveId) {
-            window.open(`https://drive.google.com/file/d/${driveId}/view`, '_blank');
+            const url = `https://drive.google.com/file/d/${driveId}/view`;
+            window.open(url, '_blank');
+            showToast('🔗 Dibuka di Google Drive');
         }
 
         // ===== DOWNLOAD MANAGER =====
-        async function downloadVideo(driveId, name) {
-            if (!isOnline) {
-                showToast('❌ Tidak ada koneksi internet');
-                return;
+        function downloadVideo(driveId, name) {
+            // Trigger download
+            const downloadUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
+            
+            // Buka di tab baru untuk trigger download
+            window.open(downloadUrl, '_blank');
+            
+            // Tambahkan ke daftar downloaded
+            if (!downloadedVideos.includes(driveId)) {
+                downloadedVideos.push(driveId);
+                localStorage.setItem('downloadedVideos', JSON.stringify(downloadedVideos));
             }
-
-            const btn = document.getElementById('downloadBtn');
-            const progress = document.getElementById('downloadProgress');
-            const progressBar = document.getElementById('downloadProgressBar');
             
-            btn.classList.add('downloading');
-            btn.textContent = '⏳ Mengunduh...';
-            progress.style.display = 'block';
+            showToast(`️ Memulai download: ${name}`);
             
-            try {
-                // Simulasi progress
-                let progressValue = 0;
-                const progressInterval = setInterval(() => {
-                    progressValue += 10;
-                    progressBar.style.width = progressValue + '%';
-                    if (progressValue >= 100) clearInterval(progressInterval);
-                }, 500);
-
-                // Trigger download menggunakan Google Drive direct link
-                const downloadUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
-                
-                // Buat link download
-                const a = document.createElement('a');
-                a.href = downloadUrl;
-                a.download = name + '.mp4';
-                a.target = '_blank';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                
-                // Tunggu sebentar lalu simpan ke list
-                setTimeout(() => {
-                    if (!downloadedVideos.includes(driveId)) {
-                        downloadedVideos.push(driveId);
-                        localStorage.setItem('downloadedVideos', JSON.stringify(downloadedVideos));
+            // Refresh halaman setelah 2 detik
+            setTimeout(() => {
+                if (currentPage === 'videoDetail') {
+                    // Re-render untuk update button
+                    const prevPage = navigationStack[navigationStack.length - 2];
+                    if (prevPage) {
+                        currentPage = prevPage.page;
+                        const data = prevPage.data;
+                        if (data && data.category && data.itemId) {
+                            showVideoDetail(data.category, data.itemId);
+                        }
                     }
-                    
-                    clearInterval(progressInterval);
-                    progressBar.style.width = '100%';
-                    btn.classList.remove('downloading');
-                    btn.classList.add('downloaded');
-                    btn.textContent = '✓ Sudah Tersimpan (Hapus)';
-                    btn.onclick = function() { deleteVideo(driveId, name); };
-                    
-                    showToast(`✅ ${name} berhasil didownload!`);
-                    
-                    // Update home page
-                    if (currentPage === 'home') renderHome();
-                }, 3000);
-                
-            } catch (error) {
-                console.error('Download error:', error);
-                showToast('❌ Download gagal. Coba lagi.');
-                btn.classList.remove('downloading');
-                btn.textContent = '⬇️ Download untuk Offline';
-                progress.style.display = 'none';
-            }
+                }
+            }, 2000);
         }
 
         function deleteVideo(driveId, name) {
-            if (confirm(`Hapus ${name} dari penyimpanan?`)) {
+            if (confirm(`Hapus "${name}" dari daftar tersimpan?`)) {
                 downloadedVideos = downloadedVideos.filter(id => id !== driveId);
                 localStorage.setItem('downloadedVideos', JSON.stringify(downloadedVideos));
+                showToast('🗑️ Video dihapus dari daftar');
                 
-                const btn = document.getElementById('downloadBtn');
-                btn.classList.remove('downloaded');
-                btn.textContent = '⬇️ Download untuk Offline';
-                btn.onclick = function() { downloadVideo(driveId, name); };
-                
-                showToast('🗑️ Video dihapus');
-                if (currentPage === 'home') renderHome();
-                else if (currentPage === 'downloads') renderDownloads();
+                // Re-render
+                const prevPage = navigationStack[navigationStack.length - 2];
+                if (prevPage && prevPage.data) {
+                    showVideoDetail(prevPage.data.category, prevPage.data.itemId);
+                }
             }
         }
 
         function renderDownloads() {
             let html = '<button class="back-btn" onclick="goBack()">← Kembali</button>';
-            html += '<div class="page-title">Video Tersimpan</div>';
+            html += '<div class="page-title"> Video Tersimpan</div>';
             
             if (downloadedVideos.length === 0) {
                 html += `
@@ -508,37 +509,36 @@
                 `;
             } else {
                 downloadedVideos.forEach(driveId => {
-                    // Cari info video
-                    let videoInfo = { name: 'Video Tidak Dikenal', category: '' };
+                    let videoInfo = { name: 'Video Tidak Dikenal', category: '', icon: '🎬' };
                     for (let catKey in CONTENT) {
                         const item = CONTENT[catKey].items?.find(i => i.driveId === driveId);
                         if (item) {
-                            videoInfo = { name: item.name, category: CONTENT[catKey].title };
+                            videoInfo = { 
+                                name: item.name, 
+                                category: CONTENT[catKey].title,
+                                icon: CONTENT[catKey].icon || '🎬'
+                            };
                             break;
                         }
                     }
                     
                     html += `
                         <div class="submenu-item" style="margin-bottom: 10px;">
-                            <div class="submenu-icon" style="background:var(--primary); color:white;"></div>
+                            <div class="submenu-icon" style="background:var(--primary); color:white;">${videoInfo.icon}</div>
                             <div class="submenu-text">
                                 <div class="submenu-title">${videoInfo.name}</div>
                                 <div class="submenu-desc">${videoInfo.category}</div>
                             </div>
-                            <button class="btn-action" style="width: auto; padding: 8px 16px; font-size: 12px;" 
-                                    onclick="playVideo('${driveId}', '${videoInfo.name}')">▶️</button>
-                            <button class="btn-action" style="width: auto; padding: 8px 16px; font-size: 12px; background: #f44336; color: white;" 
-                                    onclick="deleteVideo('${driveId}', '${videoInfo.name.replace(/'/g, "\\'")}')">🗑️</button>
+                            <button class="btn-action" style="width: auto; padding: 8px 16px; font-size: 12px; margin: 0;" 
+                                    onclick="playVideo('${driveId}', '${videoInfo.name.replace(/'/g, "\\'")}')">▶️</button>
                         </div>
                     `;
                 });
-            }
-            
-            if (downloadedVideos.length > 0) {
+                
                 html += `
-                    <button class="btn-action" style="background: #f44336; color: white; margin-top: 16px;" 
+                    <button class="btn-action btn-danger" style="margin-top: 16px;" 
                             onclick="clearAllDownloads()">
-                        ️ Hapus Semua Download
+                        🗑️ Hapus Semua Download
                     </button>
                 `;
             }
@@ -547,50 +547,83 @@
         }
 
         function clearAllDownloads() {
-            if (confirm('Hapus semua video yang didownload?')) {
+            if (confirm('Hapus semua video dari daftar tersimpan?')) {
                 downloadedVideos = [];
                 localStorage.setItem('downloadedVideos', '[]');
                 renderDownloads();
-                renderHome();
                 showToast('✅ Semua download dihapus');
             }
         }
 
-        // ===== UTILITIES =====
-        function checkOnlineStatus() {
-            isOnline = navigator.onLine;
-            const indicator = document.getElementById('offlineIndicator');
-            const btn = document.getElementById('onlineBtn');
-            
-            if (isOnline) {
-                indicator.classList.remove('show');
-                btn.textContent = '🌐';
-                btn.style.background = 'rgba(255,255,255,0.2)';
-            } else {
-                indicator.classList.add('show');
-                btn.textContent = '📴';
-                btn.style.background = '#f44336';
-            }
+        // ===== SETTINGS =====
+        function renderSettings() {
+            document.getElementById('appContent').innerHTML = `
+                <button class="back-btn" onclick="goBack()">← Kembali</button>
+                <div class="page-title">⚙️ Pengaturan</div>
+                <div class="settings-group">
+                    <div class="settings-item" onclick="forceRefresh()">
+                        <div class="settings-item-left">
+                            <div class="settings-item-icon" style="background:#fff3e0; color:#e65100;">🔄</div>
+                            <div class="settings-item-text">
+                                <h4>Force Refresh Konten</h4>
+                                <p>Update dari Google Drive</p>
+                            </div>
+                        </div>
+                        <span>›</span>
+                    </div>
+                    <div class="settings-item" onclick="navigateTo('downloads')">
+                        <div class="settings-item-left">
+                            <div class="settings-item-icon" style="background:#f3e5f5; color:#7b1fa2;">💾</div>
+                            <div class="settings-item-text">
+                                <h4>Riwayat Download</h4>
+                                <p>${downloadedVideos.length} video tersimpan</p>
+                            </div>
+                        </div>
+                        <span>›</span>
+                    </div>
+                    <div class="settings-item" onclick="clearAllDownloads()">
+                        <div class="settings-item-left">
+                            <div class="settings-item-icon" style="background:#ffebee; color:#c62828;">🗑️</div>
+                            <div class="settings-item-text">
+                                <h4>Hapus Semua Download</h4>
+                                <p>Reset daftar video tersimpan</p>
+                            </div>
+                        </div>
+                        <span>›</span>
+                    </div>
+                </div>
+                <div style="text-align:center; padding:20px; color:var(--text-light); font-size:12px;">
+                    Smart Hafiz v2.0<br>
+                    Download & Offline Mode<br>
+                    © 2024
+                </div>
+            `;
         }
 
+        // ===== UTILITIES =====
         function setupEventListeners() {
-            window.addEventListener('online', checkOnlineStatus);
-            window.addEventListener('offline', checkOnlineStatus);
-            
             // Prevent back button
             history.pushState(null, null, location.href);
             window.addEventListener('popstate', () => {
                 history.pushState(null, null, location.href);
                 if (currentPage !== 'home') goBack();
+                else showToast(' Tekan tombol Home untuk keluar');
             });
+
+            // Prevent context menu
+            document.addEventListener('contextmenu', e => e.preventDefault());
         }
 
         function enterApp() {
-            if (document.getElementById('lockPassword').value === CONFIG.pin) {
+            const pin = document.getElementById('lockPassword').value;
+            if (pin === CONFIG.pin) {
                 document.getElementById('lockScreen').classList.add('hidden');
                 document.getElementById('mainApp').classList.add('active');
+                renderHome();
+                showToast('Selamat datang di Smart Hafiz! 📖');
             } else {
                 showToast('❌ PIN salah');
+                document.getElementById('lockPassword').value = '';
             }
         }
 
@@ -599,21 +632,6 @@
             toast.textContent = message;
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-
-        function renderSettings() {
-            document.getElementById('appContent').innerHTML = `
-                <button class="back-btn" onclick="goBack()">← Kembali</button>
-                <div class="page-title">Pengaturan</div>
-                <div style="background: white; border-radius: 16px; padding: 20px;">
-                    <p style="margin-bottom: 16px; color: var(--text-light);">
-                        Total video tersimpan: <strong>${downloadedVideos.length}</strong>
-                    </p>
-                    <button class="btn-action btn-download" onclick="clearAllDownloads()" style="border-color: #f44336; color: #f44336;">
-                        ️ Hapus Semua Download
-                    </button>
-                </div>
-            `;
         }
     </script>
 </body>
