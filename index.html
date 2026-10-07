@@ -1,0 +1,2514 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Smart Hafiz - Solusi Pintar Menghafal Al-Quran</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        :root {
+            --primary: #1a7a4c;
+            --primary-dark: #0d5c35;
+            --secondary: #f0a500;
+            --accent: #e74c3c;
+            --bg: #f5f5f5;
+            --card-bg: #ffffff;
+            --text: #333333;
+            --text-light: #666666;
+            --shadow: 0 4px 15px rgba(0,0,0,0.1);
+            --radius: 16px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        /* ===== LOCK SCREEN ===== */
+        #lockScreen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, #1a7a4c 0%, #0d5c35 50%, #1a7a4c 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            transition: opacity 0.5s;
+        }
+
+        #lockScreen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .lock-logo {
+            width: 120px;
+            height: 120px;
+            background: white;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .lock-title {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .lock-subtitle {
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .lock-input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .lock-input {
+            width: 250px;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            text-align: center;
+            background: rgba(255,255,255,0.95);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            outline: none;
+        }
+
+        .lock-btn {
+            padding: 12px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .lock-btn-enter {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .lock-btn-enter:active {
+            transform: scale(0.95);
+            background: #d4940a;
+        }
+
+        .lock-error {
+            color: #ff6b6b;
+            font-size: 14px;
+            min-height: 20px;
+        }
+
+        .lock-hint {
+            color: rgba(255,255,255,0.5);
+            font-size: 12px;
+            margin-top: 20px;
+        }
+
+        /* ===== MAIN APP ===== */
+        #mainApp {
+            display: none;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        #mainApp.active {
+            display: flex;
+        }
+
+        /* Header */
+        .app-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 100;
+            min-height: 56px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-logo {
+            width: 36px;
+            height: 36px;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .header-subtitle {
+            font-size: 10px;
+            opacity: 0.8;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 8px;
+        }
+
+        .header-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .header-btn:active {
+            background: rgba(255,255,255,0.4);
+            transform: scale(0.9);
+        }
+
+        /* Content Area */
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 16px;
+            padding-bottom: 80px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .app-content::-webkit-scrollbar {
+            width: 0;
+        }
+
+        /* Page Title */
+        .page-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--primary-dark);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .page-title .icon {
+            font-size: 28px;
+        }
+
+        /* Category Grid */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .category-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .category-card:active {
+            transform: scale(0.95);
+            border-color: var(--primary);
+        }
+
+        .category-card.has-content::after {
+            content: '✓';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 20px;
+            height: 20px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .category-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
+
+        .category-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            line-height: 1.3;
+        }
+
+        .category-count {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        /* Sub-menu list */
+        .submenu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .submenu-item {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 14px 16px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s;
+            border-left: 4px solid var(--primary);
+        }
+
+        .submenu-item:active {
+            transform: translateX(5px);
+            background: #f0fff4;
+        }
+
+        .submenu-item.no-file {
+            opacity: 0.5;
+            border-left-color: #ccc;
+        }
+
+        .submenu-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .submenu-text {
+            flex: 1;
+        }
+
+        .submenu-title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .submenu-desc {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+
+        .submenu-arrow {
+            font-size: 18px;
+            color: var(--text-light);
+        }
+
+        .file-badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: var(--primary);
+            color: white;
+            margin-left: 8px;
+        }
+
+        .file-badge.missing {
+            background: #ccc;
+        }
+
+        /* Back Button */
+        .back-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 50px;
+            background: var(--primary);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .back-btn:active {
+            transform: scale(0.95);
+            background: var(--primary-dark);
+        }
+
+        /* ===== VIDEO PLAYER ===== */
+        #videoPlayer {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #000;
+            z-index: 5000;
+            display: none;
+            flex-direction: column;
+        }
+
+        #videoPlayer.active {
+            display: flex;
+        }
+
+        .video-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: #000;
+        }
+
+        .video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            max-height: 70vh;
+        }
+
+        .video-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .video-placeholder .big-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .video-placeholder h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .video-placeholder p {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        /* Video Controls */
+        .video-controls {
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            padding: 20px 16px 30px;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            transition: opacity 0.3s;
+        }
+
+        .video-progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .video-progress-fill {
+            height: 100%;
+            background: var(--secondary);
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.1s;
+        }
+
+        .video-time {
+            display: flex;
+            justify-content: space-between;
+            color: white;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+        .video-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .vid-btn {
+            border: none;
+            background: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            padding: 8px;
+        }
+
+        .vid-btn:active {
+            transform: scale(0.85);
+        }
+
+        .vid-btn-small {
+            font-size: 24px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+        }
+
+        .vid-btn-play {
+            font-size: 36px;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--primary);
+            box-shadow: 0 4px 15px rgba(26,122,76,0.5);
+        }
+
+        .vid-btn-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .vid-btn-close:active {
+            background: rgba(255,255,255,0.4);
+        }
+
+        .video-title-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 16px;
+            background: linear-gradient(rgba(0,0,0,0.7), transparent);
+            color: white;
+            z-index: 5;
+            transition: opacity 0.3s;
+        }
+
+        .video-title-bar h3 {
+            font-size: 16px;
+        }
+
+        .video-title-bar p {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .speed-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .speed-indicator.show {
+            opacity: 1;
+        }
+
+        /* ===== BOTTOM NAV ===== */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 200;
+            padding-bottom: max(8px, env(safe-area-inset-bottom));
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            padding: 4px 12px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: var(--text-light);
+            transition: all 0.3s;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item .nav-icon {
+            font-size: 22px;
+        }
+
+        .nav-item .nav-label {
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        /* ===== PASSWORD MODAL ===== */
+        #passwordModal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9000;
+        }
+
+        #passwordModal.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 85%;
+            max-width: 350px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-box h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: var(--primary-dark);
+        }
+
+        .modal-box p {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-bottom: 20px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 15px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .modal-input:focus {
+            border-color: var(--primary);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-btn-cancel {
+            background: #f0f0f0;
+            color: var(--text);
+        }
+
+        .modal-btn-confirm {
+            background: var(--primary);
+            color: white;
+        }
+
+        .modal-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* ===== SETTINGS PAGE ===== */
+        .settings-group {
+            background: white;
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .settings-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        .settings-item-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .settings-item-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .settings-item-text h4 {
+            font-size: 14px;
+        }
+
+        .settings-item-text p {
+            font-size: 11px;
+            color: var(--text-light);
+        }
+
+        .toggle {
+            width: 48px;
+            height: 26px;
+            background: #ccc;
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle.on {
+            background: var(--primary);
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle.on::after {
+            transform: translateX(22px);
+        }
+
+        /* ===== JAM SHOLAT WIDGET ===== */
+        .sholat-widget {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: var(--radius);
+            padding: 20px;
+            color: white;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .sholat-widget h3 {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 4px;
+        }
+
+        .sholat-time {
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        .sholat-date {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+
+        .sholat-next {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            font-size: 13px;
+        }
+
+        /* ===== HAFIZ POINT ===== */
+        .point-card {
+            background: linear-gradient(135deg, var(--secondary), #d4940a);
+            border-radius: var(--radius);
+            padding: 20px;
+            color: white;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .point-card h3 {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .point-value {
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        .point-label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        /* ===== STORAGE INFO ===== */
+        .storage-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: var(--radius);
+            padding: 20px;
+            color: white;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .storage-card h3 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .storage-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .storage-fill {
+            height: 100%;
+            background: white;
+            border-radius: 4px;
+            transition: width 0.5s;
+        }
+
+        .storage-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        /* ===== SCAN PROGRESS ===== */
+        .scan-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 8000;
+            flex-direction: column;
+        }
+
+        .scan-overlay.active {
+            display: flex;
+        }
+
+        .scan-box {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 85%;
+            max-width: 350px;
+            text-align: center;
+        }
+
+        .scan-spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid #f0f0f0;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .scan-box h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--primary-dark);
+        }
+
+        .scan-box p {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-bottom: 15px;
+        }
+
+        .scan-progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #f0f0f0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .scan-progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .scan-count {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 10px;
+        }
+
+        /* ===== FILE MANAGER ===== */
+        .file-manager-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+        }
+
+        .file-manager-card h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: var(--primary-dark);
+        }
+
+        .folder-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .folder-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .folder-item-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .folder-icon {
+            font-size: 24px;
+        }
+
+        .folder-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .folder-count {
+            font-size: 11px;
+            color: var(--text-light);
+        }
+
+        .folder-status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .folder-status.ready {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .folder-status.empty {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .btn-scan {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s;
+        }
+
+        .btn-scan:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            background: white;
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:active {
+            background: #f0fff4;
+        }
+
+        /* ===== COLOR THEMES ===== */
+        .bg-green { background: #e8f5e9; color: #2e7d32; }
+        .bg-blue { background: #e3f2fd; color: #1565c0; }
+        .bg-orange { background: #fff3e0; color: #e65100; }
+        .bg-purple { background: #f3e5f5; color: #7b1fa2; }
+        .bg-red { background: #ffebee; color: #c62828; }
+        .bg-teal { background: #e0f2f1; color: #00695c; }
+        .bg-yellow { background: #fffde7; color: #f57f17; }
+        .bg-pink { background: #fce4ec; color: #ad1457; }
+        .bg-indigo { background: #e8eaf6; color: #283593; }
+        .bg-cyan { background: #e0f7fa; color: #00838f; }
+
+        /* ===== ANIMATIONS ===== */
+        .fade-in {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (min-width: 500px) {
+            .category-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (min-width: 768px) {
+            .category-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .app-content {
+                max-width: 800px;
+                margin: 0 auto;
+            }
+        }
+
+        .no-context {
+            -webkit-touch-callout: none;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 14px;
+            z-index: 8000;
+            transition: transform 0.3s;
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Hidden file input */
+        #folderInput {
+            display: none;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state .empty-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .empty-state p {
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body class="no-context">
+
+    <!-- Hidden file input for folder selection -->
+    <input type="file" id="folderInput" webkitdirectory directory multiple accept="video/*,audio/*,image/*">
+
+    <!-- ===== LOCK SCREEN ===== -->
+    <div id="lockScreen">
+        <div class="lock-logo"></div>
+        <div class="lock-title">Smart Hafiz</div>
+        <div class="lock-subtitle">Solusi Pintar Menghafal Al-Quran</div>
+        <div class="lock-input-group">
+            <input type="password" class="lock-input" id="lockPassword" 
+                   placeholder="Masukkan PIN" maxlength="6" 
+                   autocomplete="off" inputmode="numeric">
+            <button class="lock-btn lock-btn-enter" onclick="enterApp()">
+                🔓 Masuk
+            </button>
+            <div class="lock-error" id="lockError"></div>
+        </div>
+        <div class="lock-hint">PIN default: 1234</div>
+    </div>
+
+    <!-- ===== MAIN APP ===== -->
+    <div id="mainApp">
+        <!-- Header -->
+        <div class="app-header">
+            <div class="header-left">
+                <div class="header-logo">📖</div>
+                <div>
+                    <div class="header-title">Smart Hafiz</div>
+                    <div class="header-subtitle">Solusi Pintar Menghafal Al-Quran</div>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="header-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
+                <button class="header-btn" onclick="showSettings()" title="Pengaturan">⚙️</button>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="app-content" id="appContent">
+            <!-- Dynamic content loaded here -->
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <button class="nav-item active" onclick="navigateTo('home')" id="navHome">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Beranda</span>
+            </button>
+            <button class="nav-item" onclick="navigateTo('mengaji')" id="navMengaji">
+                <span class="nav-icon">📖</span>
+                <span class="nav-label">Mengaji</span>
+            </button>
+            <button class="nav-item" onclick="navigateTo('lagu')" id="navLagu">
+                <span class="nav-icon"></span>
+                <span class="nav-label">Lagu</span>
+            </button>
+            <button class="nav-item" onclick="navigateTo('cerita')" id="navCerita">
+                <span class="nav-icon">📚</span>
+                <span class="nav-label">Cerita</span>
+            </button>
+            <button class="nav-item" onclick="navigateTo('settings')" id="navSettings">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-label">Lainnya</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== VIDEO PLAYER ===== -->
+    <div id="videoPlayer">
+        <div class="video-container" id="videoContainer">
+            <button class="vid-btn-close" onclick="closeVideo()">✕</button>
+            <div class="video-title-bar" id="videoTitleBar">
+                <h3 id="videoTitle">Judul Video</h3>
+                <p id="videoCategory">Kategori</p>
+            </div>
+            <div class="video-placeholder" id="videoPlaceholder">
+                <div class="big-icon"></div>
+                <h3 id="placeholderTitle">Video</h3>
+                <p id="placeholderDesc">Tekan play untuk memulai</p>
+            </div>
+            <video id="mainVideo" playsinline webkit-playsinline></video>
+            <div class="speed-indicator" id="speedIndicator">1x</div>
+            <div class="video-controls" id="videoControls">
+                <div class="video-progress-bar" id="progressBar" onclick="seekVideo(event)">
+                    <div class="video-progress-fill" id="progressFill"></div>
+                </div>
+                <div class="video-time">
+                    <span id="currentTime">00:00</span>
+                    <span id="totalTime">00:00</span>
+                </div>
+                <div class="video-buttons">
+                    <button class="vid-btn vid-btn-small" onclick="skipBackward()">⏪</button>
+                    <button class="vid-btn vid-btn-small" onclick="changeSpeed(-0.25)"></button>
+                    <button class="vid-btn vid-btn-play" id="playBtn" onclick="togglePlay()">▶️</button>
+                    <button class="vid-btn vid-btn-small" onclick="changeSpeed(0.25)">🐇</button>
+                    <button class="vid-btn vid-btn-small" onclick="skipForward()">⏩</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== PASSWORD MODAL ===== -->
+    <div id="passwordModal">
+        <div class="modal-box">
+            <h3>🔒 Masukkan PIN</h3>
+            <p>Masukkan PIN untuk keluar dari aplikasi</p>
+            <input type="password" class="modal-input" id="exitPassword" 
+                   placeholder="PIN" maxlength="6" inputmode="numeric">
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" onclick="closePasswordModal()">Batal</button>
+                <button class="modal-btn modal-btn-confirm" onclick="verifyExitPassword()">Keluar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SCAN OVERLAY ===== -->
+    <div class="scan-overlay" id="scanOverlay">
+        <div class="scan-box">
+            <div class="scan-spinner"></div>
+            <h3>📂 Memindai Folder</h3>
+            <p id="scanStatus">Mencari file konten...</p>
+            <div class="scan-progress-bar">
+                <div class="scan-progress-fill" id="scanProgressFill"></div>
+            </div>
+            <div class="scan-count" id="scanCount">0 file ditemukan</div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ===== CONFIGURATION =====
+        const CONFIG = {
+            defaultPIN: '1234',
+            pin: localStorage.getItem('smartHafizPIN') || '1234',
+            autoLock: true,
+            kioskMode: true,
+            videoSpeed: 1.0,
+            currentVideo: null,
+            hafizPoints: parseInt(localStorage.getItem('hafizPoints') || '0'),
+            dailyJuz: parseInt(localStorage.getItem('dailyJuz') || '1'),
+            lastOpenDate: localStorage.getItem('lastOpenDate') || '',
+            folderPath: localStorage.getItem('smartHafizFolder') || '',
+            fileMap: JSON.parse(localStorage.getItem('smartHafizFileMap') || '{}')
+        };
+
+        // ===== CONTENT DATA =====
+        const CONTENT = {
+            mengaji: {
+                title: 'MENGAJI YUK',
+                icon: '📖',
+                color: 'bg-green',
+                folder: 'mengaji',
+                items: [
+                    { id: 'metode-alqolam', name: 'Metode Al-Qolam', icon: '📗', desc: 'Belajar mengaji dengan metode Al-Qolam' },
+                    { id: 'asmaul-husna', name: 'Asmaul Husna', icon: '✨', desc: '99 Nama Indah Allah SWT' },
+                    { id: 'dai-cilik', name: "Da'i Cilik", icon: '🎤', desc: 'Belajar menjadi dai cilik' },
+                    { id: 'tahsin-alqolam', name: 'Tahsin Al-Qolam', icon: '📝', desc: 'Memperbaiki bacaan Al-Quran' },
+                    { id: 'tes-baca-quran', name: "Tes Baca Qur'an", icon: '📋', desc: 'Uji kemampuan membaca Al-Quran' },
+                    { id: 'tutorial-wudhu', name: 'Tutorial Wudhu', icon: '💧', desc: 'Cara berwudhu yang benar' },
+                    { id: 'tutorial-sholat', name: 'Tutorial Sholat', icon: '', desc: 'Panduan sholat lengkap' },
+                    { id: 'hafiz-cilik', name: 'Hafiz Cilik', icon: '', desc: 'Program menghafal Al-Quran' },
+                    { id: 'adzan', name: 'Adzan', icon: '', desc: 'Lafadz adzan dan iqamah' },
+                    { id: 'senandung-asmaul', name: 'Senandung Asmaul Husna', icon: '🎶', desc: 'Lagu Asmaul Husna' },
+                    { id: 'maqamat-quran', name: "Maqamat Qur'an", icon: '', desc: 'Macam-macam maqamat' },
+                    { id: 'murottal-juz', name: 'Murottal Juz 1-29', icon: '', desc: 'Murottal lengkap (USB)' }
+                ]
+            },
+            ruangMengaji: {
+                title: 'RUANG MENGAJI',
+                icon: '🏫',
+                color: 'bg-blue',
+                folder: 'mengaji',
+                items: [
+                    { id: 'belajar-harakat', name: 'Belajar Mengenal Harakat', icon: '', desc: 'Fathah, Kasrah, Dhommah' },
+                    { id: 'belajar-huruf', name: 'Belajar Mengenal Huruf', icon: '📝', desc: 'Huruf Hijaiyah dasar' },
+                    { id: 'latihan-hijaiyah', name: 'Latihan Huruf Hijaiyah', icon: '✍️', desc: 'Latihan menulis huruf' },
+                    { id: 'latihan-harakat', name: 'Latihan Mengenal Harakat', icon: '📚', desc: 'Latihan harakat lanjutan' },
+                    { id: 'tanda-sukun', name: 'Mengenal Tanda Sukun', icon: '⭕', desc: 'Belajar tanda sukun' },
+                    { id: 'tanda-tasydid', name: 'Mengenal Tanda Tasydid', icon: '️', desc: 'Belajar tanda tasydid' }
+                ]
+            },
+            menyanyi: {
+                title: 'MENYANYI YUK',
+                icon: '🎵',
+                color: 'bg-orange',
+                folder: 'lagu',
+                items: [
+                    { id: 'lagu-islami', name: 'Lagu Islami', icon: '', desc: 'Kumpulan lagu islami' },
+                    { id: 'lagu-daerah', name: 'Lagu Daerah', icon: '🎼', desc: 'Lagu daerah Indonesia' },
+                    { id: 'lagu-anak', name: 'Lagu Anak', icon: '', desc: 'Lagu anak-anak' },
+                    { id: 'lagu-akhlaq', name: 'Lagu Akhlaq Terpuji', icon: '🌸', desc: 'Lagu tentang akhlaq' },
+                    { id: 'lagu-islami-2', name: 'Lagu Islami 2', icon: '🎵', desc: 'Lagu islami bagian 2' },
+                    { id: 'lagu-pengetahuan', name: 'Lagu Seri Pengetahuan', icon: '🧠', desc: 'Lagu edukatif' },
+                    { id: 'lagu-hafiz', name: 'Lagu Hafiz-Hafizah', icon: '⭐', desc: 'Lagu motivasi hafiz' }
+                ]
+            },
+            cerita: {
+                title: 'CERITA',
+                icon: '📚',
+                color: 'bg-purple',
+                folder: 'cerita',
+                items: [
+                    { id: 'hari-besar-islam', name: 'Hari Besar Umat Islam', icon: '🌙', desc: 'Hari-hari besar Islam' },
+                    { id: 'jejak-islami', name: 'Jejak Islami', icon: '👣', desc: 'Perjalanan islami' },
+                    { id: 'sirah-nabawiyah', name: 'Sirah Nabawiyah', icon: '🕌', desc: 'Kisah Nabi Muhammad SAW' },
+                    { id: 'hafiz-umroh', name: 'Hafiz Hafizah Umroh', icon: '🕋', desc: 'Kisah umroh' },
+                    { id: 'kisah-25-nabi', name: 'Kisah 25 Nabi', icon: '', desc: 'Kisah para nabi' },
+                    { id: 'kosakata', name: 'Kosakata', icon: '📝', desc: 'Belajar kosakata' },
+                    { id: 'khalifah-burung', name: 'Khalifah Burung Bangau', icon: '🦢', desc: 'Cerita khalifah' }
+                ]
+            },
+            film: {
+                title: 'FILM',
+                icon: '🎬',
+                color: 'bg-red',
+                folder: 'film',
+                items: [
+                    { id: 'seri-ibadah', name: 'Seri Ibadah', icon: '🕌', desc: 'Film tentang ibadah' },
+                    { id: 'seri-balita', name: 'Seri Balita', icon: '👶', desc: 'Film untuk balita' },
+                    { id: 'film-hafiz', name: 'Film Hafiz & Hafizah', icon: '🌟', desc: 'Film inspiratif' }
+                ]
+            },
+            akhlaq: {
+                title: 'AKHLAQ TERPUJI',
+                icon: '🌸',
+                color: 'bg-pink',
+                folder: 'akhlaq',
+                items: [
+                    { id: 'akhlaq-terpuji', name: 'Akhlak Terpuji', icon: '💎', desc: 'Pelajaran akhlaq mulia' },
+                    { id: 'p3k', name: 'P3K', icon: '🏥', desc: 'Pertolongan pertama' }
+                ]
+            },
+            kamera: {
+                title: 'KAMERA',
+                icon: '',
+                color: 'bg-teal',
+                folder: 'kamera',
+                items: [
+                    { id: 'ayo-menari', name: 'Ayo Menari', icon: '💃', desc: 'Video menari' },
+                    { id: 'emoticon', name: 'Emoticon', icon: '😊', desc: 'Belajar emoticon' },
+                    { id: 'presentasi', name: 'Presentasi', icon: '📊', desc: 'Materi presentasi' }
+                ]
+            },
+            sentuhBelajar: {
+                title: 'SENTUH DAN BELAJAR',
+                icon: '👆',
+                color: 'bg-yellow',
+                folder: 'sentuh',
+                items: [
+                    { id: 'murattal-juz30', name: 'Murattal Juz 30', icon: '', desc: 'Murottal Juz Amma' },
+                    { id: 'huruf-hijaiyah', name: 'Huruf Hijaiyah', icon: '🔤', desc: 'Belajar huruf hijaiyah' },
+                    { id: 'asmaul-husna-touch', name: 'Asmaul Husna', icon: '✨', desc: '99 Nama Allah' }
+                ]
+            },
+            oneDayOneJuz: {
+                title: 'ONE DAY ONE JUZ',
+                icon: '📅',
+                color: 'bg-indigo',
+                folder: 'juz',
+                items: [
+                    { id: 'daily-murattal', name: 'Daily Murattal per Juz', icon: '📖', desc: 'Murottal harian' },
+                    { id: '5-suara-adzan', name: '5 Suara Adzan', icon: '📢', desc: 'Adzan dari berbagai negara' }
+                ]
+            }
+        };
+
+        // ===== APP STATE =====
+        let currentPage = 'home';
+        let navigationStack = [];
+        let isFullscreen = false;
+        let videoInterval = null;
+        let controlsTimeout = null;
+        let fileObjects = {}; // Store File objects temporarily
+
+        // ===== INITIALIZATION =====
+        document.addEventListener('DOMContentLoaded', function() {
+            initApp();
+        });
+
+        function initApp() {
+            // Prevent context menu
+            document.addEventListener('contextmenu', e => e.preventDefault());
+            
+            // Prevent back button
+            history.pushState(null, null, location.href);
+            window.addEventListener('popstate', function() {
+                history.pushState(null, null, location.href);
+                handleBackButton();
+            });
+
+            // Prevent zoom
+            document.addEventListener('gesturestart', e => e.preventDefault());
+            document.addEventListener('dblclick', e => e.preventDefault());
+
+            // Lock password input
+            const lockInput = document.getElementById('lockPassword');
+            lockInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') enterApp();
+            });
+            lockInput.focus();
+
+            // Exit password modal
+            const exitInput = document.getElementById('exitPassword');
+            exitInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') verifyExitPassword();
+            });
+
+            // Folder input handler
+            document.getElementById('folderInput').addEventListener('change', handleFolderSelect);
+
+            // Check daily juz
+            checkDailyJuz();
+
+            // Request fullscreen on first interaction
+            document.addEventListener('click', function firstClick() {
+                if (CONFIG.kioskMode) {
+                    requestFullscreen();
+                }
+                document.removeEventListener('click', firstClick);
+            }, { once: true });
+        }
+
+        // ===== LOCK SCREEN =====
+        function enterApp() {
+            const input = document.getElementById('lockPassword').value;
+            const error = document.getElementById('lockError');
+            
+            if (input === CONFIG.pin) {
+                document.getElementById('lockScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.add('active');
+                renderHome();
+                requestFullscreen();
+                showToast('Selamat datang di Smart Hafiz! 📖');
+            } else {
+                error.textContent = '❌ PIN salah, coba lagi';
+                document.getElementById('lockPassword').value = '';
+                document.getElementById('lockPassword').focus();
+                setTimeout(() => { error.textContent = ''; }, 2000);
+            }
+        }
+
+        // ===== NAVIGATION =====
+        function navigateTo(page, data) {
+            navigationStack.push({ page: currentPage, data: data });
+            currentPage = page;
+            updateNavActive();
+            
+            switch(page) {
+                case 'home': renderHome(); break;
+                case 'mengaji': renderMengaji(); break;
+                case 'ruangMengaji': renderRuangMengaji(); break;
+                case 'lagu': renderLagu(); break;
+                case 'cerita': renderCerita(); break;
+                case 'film': renderFilm(); break;
+                case 'akhlaq': renderAkhlaq(); break;
+                case 'kamera': renderKamera(); break;
+                case 'sentuhBelajar': renderSentuhBelajar(); break;
+                case 'oneDayOneJuz': renderOneDayOneJuz(); break;
+                case 'settings': renderSettings(); break;
+                case 'fileManager': renderFileManager(); break;
+                case 'submenu': renderSubmenu(data); break;
+                default: renderHome();
+            }
+        }
+
+        function goBack() {
+            if (navigationStack.length > 0) {
+                const prev = navigationStack.pop();
+                currentPage = prev.page;
+                updateNavActive();
+                switch(prev.page) {
+                    case 'home': renderHome(); break;
+                    case 'mengaji': renderMengaji(); break;
+                    case 'ruangMengaji': renderRuangMengaji(); break;
+                    case 'lagu': renderLagu(); break;
+                    case 'cerita': renderCerita(); break;
+                    case 'film': renderFilm(); break;
+                    case 'akhlaq': renderAkhlaq(); break;
+                    case 'kamera': renderKamera(); break;
+                    case 'sentuhBelajar': renderSentuhBelajar(); break;
+                    case 'oneDayOneJuz': renderOneDayOneJuz(); break;
+                    case 'settings': renderSettings(); break;
+                    case 'fileManager': renderFileManager(); break;
+                    default: renderHome();
+                }
+            } else {
+                renderHome();
+            }
+        }
+
+        function handleBackButton() {
+            if (document.getElementById('videoPlayer').classList.contains('active')) {
+                closeVideo();
+            } else if (document.getElementById('passwordModal').classList.contains('active')) {
+                closePasswordModal();
+            } else if (document.getElementById('scanOverlay').classList.contains('active')) {
+                // Don't close scan
+            } else {
+                goBack();
+            }
+        }
+
+        function updateNavActive() {
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            const navMap = {
+                'home': 'navHome',
+                'mengaji': 'navMengaji',
+                'ruangMengaji': 'navMengaji',
+                'lagu': 'navLagu',
+                'cerita': 'navCerita',
+                'film': 'navCerita',
+                'akhlaq': 'navCerita',
+                'kamera': 'navCerita',
+                'sentuhBelajar': 'navMengaji',
+                'oneDayOneJuz': 'navHome',
+                'settings': 'navSettings',
+                'fileManager': 'navSettings',
+                'submenu': null
+            };
+            const navId = navMap[currentPage];
+            if (navId) {
+                document.getElementById(navId).classList.add('active');
+            }
+        }
+
+        // ===== FILE MANAGEMENT =====
+        function handleFolderSelect(event) {
+            const files = Array.from(event.target.files);
+            if (files.length === 0) return;
+
+            showScanOverlay();
+            
+            let processed = 0;
+            const totalFiles = files.length;
+            const newFileMap = {};
+            const newFileObjects = {};
+
+            files.forEach(file => {
+                const path = file.webkitRelativePath || file.name;
+                const parts = path.split('/');
+                
+                // Expected structure: SmartHafiz/folder/filename.ext
+                if (parts.length >= 2) {
+                    const folder = parts[parts.length - 2].toLowerCase();
+                    const filename = parts[parts.length - 1].toLowerCase();
+                    const nameWithoutExt = filename.replace(/\.(mp4|mp3|avi|mkv|mov|wmv|jpg|png|jpeg)$/i, '');
+                    
+                    const key = `${folder}/${nameWithoutExt}`;
+                    newFileMap[key] = {
+                        path: path,
+                        filename: filename,
+                        folder: folder,
+                        name: nameWithoutExt,
+                        size: file.size,
+                        type: file.type
+                    };
+                    newFileObjects[key] = file;
+                }
+                
+                processed++;
+                updateScanProgress(processed, totalFiles);
+            });
+
+            // Save to localStorage (just the map, not file objects)
+            CONFIG.fileMap = newFileMap;
+            localStorage.setItem('smartHafizFileMap', JSON.stringify(newFileMap));
+            fileObjects = newFileObjects;
+
+            setTimeout(() => {
+                hideScanOverlay();
+                showToast(`✅ ${Object.keys(newFileMap).length} file berhasil dimuat!`);
+                renderHome();
+            }, 1000);
+        }
+
+        function showScanOverlay() {
+            document.getElementById('scanOverlay').classList.add('active');
+            document.getElementById('scanProgressFill').style.width = '0%';
+            document.getElementById('scanCount').textContent = '0 file ditemukan';
+            document.getElementById('scanStatus').textContent = 'Mencari file konten...';
+        }
+
+        function hideScanOverlay() {
+            document.getElementById('scanOverlay').classList.remove('active');
+        }
+
+        function updateScanProgress(current, total) {
+            const percent = (current / total) * 100;
+            document.getElementById('scanProgressFill').style.width = percent + '%';
+            document.getElementById('scanCount').textContent = `${current} file diproses`;
+            
+            if (current === total) {
+                document.getElementById('scanStatus').textContent = 'Selesai!';
+            }
+        }
+
+        function getFileForContent(folder, contentId) {
+            const key = `${folder.toLowerCase()}/${contentId}`;
+            return CONFIG.fileMap[key] || null;
+        }
+
+        function getFileObject(folder, contentId) {
+            const key = `${folder.toLowerCase()}/${contentId}`;
+            return fileObjects[key] || null;
+        }
+
+        function triggerFolderSelect() {
+            document.getElementById('folderInput').click();
+        }
+
+        // ===== RENDER PAGES =====
+        function renderHome() {
+            navigationStack = [];
+            const today = new Date();
+            const dateStr = today.toLocaleDateString('id-ID', { 
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+            });
+            const timeStr = today.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+            const totalFiles = Object.keys(CONFIG.fileMap).length;
+            const storageUsed = Object.values(CONFIG.fileMap).reduce((sum, f) => sum + f.size, 0);
+            const storageMB = (storageUsed / (1024 * 1024)).toFixed(1);
+
+            const content = document.getElementById('appContent');
+            content.innerHTML = `
+                <div class="fade-in">
+                    <!-- Jam Sholat Widget -->
+                    <div class="sholat-widget">
+                        <h3>🕌 Waktu Sholat</h3>
+                        <div class="sholat-time">${timeStr}</div>
+                        <div class="sholat-date">${dateStr}</div>
+                        <div class="sholat-next">
+                            📅 Juz Hari Ini: Juz ${CONFIG.dailyJuz} | 
+                            ⭐ Poin Hafiz: ${CONFIG.hafizPoints}
+                        </div>
+                    </div>
+
+                    <!-- Storage Info -->
+                    <div class="storage-card">
+                        <h3>💾 Konten Tersimpan</h3>
+                        <div style="font-size: 24px; font-weight: bold; margin: 5px 0;">
+                            ${totalFiles} file • ${storageMB} MB
+                        </div>
+                        <div class="storage-info">
+                            <span>Memory Card</span>
+                            <span>${CONFIG.folderPath || 'Belum dipilih'}</span>
+                        </div>
+                    </div>
+
+                    <!-- Hafiz Point -->
+                    <div class="point-card">
+                        <h3>⭐ HAFIZ POINT</h3>
+                        <div class="point-value">${CONFIG.hafizPoints}</div>
+                        <div class="point-label">Poin menghafal hari ini</div>
+                    </div>
+
+                    <div class="page-title">
+                        <span class="icon">📱</span> Menu Utama
+                    </div>
+
+                    <div class="category-grid">
+                        ${renderCategoryCard('mengaji', CONTENT.mengaji)}
+                        ${renderCategoryCard('ruangMengaji', CONTENT.ruangMengaji)}
+                        ${renderCategoryCard('lagu', CONTENT.menyanyi)}
+                        ${renderCategoryCard('cerita', CONTENT.cerita)}
+                        ${renderCategoryCard('film', CONTENT.film)}
+                        ${renderCategoryCard('akhlaq', CONTENT.akhlaq)}
+                        ${renderCategoryCard('kamera', CONTENT.kamera)}
+                        ${renderCategoryCard('sentuhBelajar', CONTENT.sentuhBelajar)}
+                        ${renderCategoryCard('oneDayOneJuz', CONTENT.oneDayOneJuz)}
+                    </div>
+
+                    ${totalFiles === 0 ? `
+                        <div class="empty-state">
+                            <div class="empty-icon">📂</div>
+                            <h3>Belum Ada Konten</h3>
+                            <p>Pilih folder SmartHafiz dari memory card untuk memuat konten</p>
+                            <button class="btn-scan" onclick="triggerFolderSelect()" style="max-width: 300px; margin: 0 auto;">
+                                📁 Pilih Folder SmartHafiz
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            content.scrollTop = 0;
+        }
+
+        function renderCategoryCard(pageKey, category) {
+            const fileCount = countFilesInFolder(category.folder);
+            const hasContent = fileCount > 0;
+            return `
+                <div class="category-card ${hasContent ? 'has-content' : ''}" onclick="navigateTo('${pageKey}')">
+                    <div class="category-icon ${category.color}">${category.icon}</div>
+                    <div class="category-name">${category.title}</div>
+                    <div class="category-count">${category.items.length} materi${hasContent ? ` • ${fileCount} file` : ''}</div>
+                </div>
+            `;
+        }
+
+        function countFilesInFolder(folderName) {
+            return Object.keys(CONFIG.fileMap).filter(key => 
+                key.startsWith(folderName.toLowerCase() + '/')
+            ).length;
+        }
+
+        function renderMengaji() {
+            renderCategoryPage(CONTENT.mengaji, 'mengaji');
+        }
+
+        function renderRuangMengaji() {
+            renderCategoryPage(CONTENT.ruangMengaji, 'ruangMengaji');
+        }
+
+        function renderLagu() {
+            renderCategoryPage(CONTENT.menyanyi, 'lagu');
+        }
+
+        function renderCerita() {
+            renderCategoryPage(CONTENT.cerita, 'cerita');
+        }
+
+        function renderFilm() {
+            renderCategoryPage(CONTENT.film, 'film');
+        }
+
+        function renderAkhlaq() {
+            renderCategoryPage(CONTENT.akhlaq, 'akhlaq');
+        }
+
+        function renderKamera() {
+            renderCategoryPage(CONTENT.kamera, 'kamera');
+        }
+
+        function renderSentuhBelajar() {
+            renderCategoryPage(CONTENT.sentuhBelajar, 'sentuhBelajar');
+        }
+
+        function renderOneDayOneJuz() {
+            renderCategoryPage(CONTENT.oneDayOneJuz, 'oneDayOneJuz');
+        }
+
+        function renderCategoryPage(category, pageKey) {
+            const content = document.getElementById('appContent');
+            let itemsHTML = category.items.map((item, index) => {
+                const file = getFileForContent(category.folder, item.id);
+                const hasFile = file !== null;
+                return `
+                    <div class="submenu-item slide-in ${hasFile ? '' : 'no-file'}" 
+                         style="animation-delay: ${index * 0.05}s" 
+                         onclick="openContent('${pageKey}', '${item.id}', '${category.folder}')">
+                        <div class="submenu-icon ${category.color}">${item.icon}</div>
+                        <div class="submenu-text">
+                            <div class="submenu-title">
+                                ${item.name}
+                                <span class="file-badge ${hasFile ? '' : 'missing'}">
+                                    ${hasFile ? '✓ Ready' : ' No File'}
+                                </span>
+                            </div>
+                            <div class="submenu-desc">${item.desc}</div>
+                        </div>
+                        <div class="submenu-arrow">›</div>
+                    </div>
+                `;
+            }).join('');
+
+            content.innerHTML = `
+                <div class="fade-in">
+                    <div class="back-bar">
+                        <button class="back-btn" onclick="goBack()">← Kembali</button>
+                    </div>
+                    <div class="page-title">
+                        <span class="icon">${category.icon}</span> ${category.title}
+                    </div>
+                    <div class="submenu-list">
+                        ${itemsHTML}
+                    </div>
+                </div>
+            `;
+            content.scrollTop = 0;
+        }
+
+        function renderSubmenu(data) {
+            const content = document.getElementById('appContent');
+            content.innerHTML = `
+                <div class="fade-in">
+                    <div class="back-bar">
+                        <button class="back-btn" onclick="goBack()">← Kembali</button>
+                    </div>
+                    <div class="page-title">
+                        <span class="icon">📖</span> ${data.name || 'Detail'}
+                    </div>
+                    <div class="adhan-card">
+                        <div class="adhan-icon">🎬</div>
+                        <h3>${data.name}</h3>
+                        <p>${data.desc}</p>
+                        <button class="adhan-btn active" onclick="playContent('${data.id}', '${data.name}')" 
+                                style="margin-top:15px; padding: 12px 30px; font-size: 16px;">
+                            ▶️ Putar Video
+                        </button>
+                    </div>
+                </div>
+            `;
+            content.scrollTop = 0;
+        }
+
+        function openContent(pageKey, itemId, folder) {
+            const category = Object.values(CONTENT).find(c => c.folder === folder && 
+                c.items.some(i => i.id === itemId));
+            if (category) {
+                const item = category.items.find(i => i.id === itemId);
+                if (item) {
+                    playContent(itemId, item.name, category.title, folder);
+                }
+            }
+        }
+
+        function renderSettings() {
+            const totalFiles = Object.keys(CONFIG.fileMap).length;
+            const storageUsed = Object.values(CONFIG.fileMap).reduce((sum, f) => sum + f.size, 0);
+            const storageMB = (storageUsed / (1024 * 1024)).toFixed(1);
+
+            const content = document.getElementById('appContent');
+            content.innerHTML = `
+                <div class="fade-in">
+                    <div class="back-bar">
+                        <button class="back-btn" onclick="goBack()">← Kembali</button>
+                    </div>
+                    <div class="page-title">
+                        <span class="icon">⚙️</span> Pengaturan
+                    </div>
+
+                    <!-- Storage Info -->
+                    <div class="storage-card">
+                        <h3>💾 Status Penyimpanan</h3>
+                        <div style="font-size: 20px; font-weight: bold; margin: 8px 0;">
+                            ${totalFiles} file • ${storageMB} MB
+                        </div>
+                        <div class="storage-info">
+                            <span>Folder: ${CONFIG.folderPath || 'Belum dipilih'}</span>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <div class="settings-item" onclick="triggerFolderSelect()">
+                            <div class="settings-item-left">
+                                <div class="settings-item-icon bg-green">📁</div>
+                                <div class="settings-item-text">
+                                    <h4>Pilih Folder Konten</h4>
+                                    <p>Scan folder SmartHafiz dari memory card</p>
+                                </div>
+                            </div>
+                            <span>›</span>
+                        </div>
+                        <div class="settings-item" onclick="navigateTo('fileManager')">
+                            <div class="settings-item-left">
+                                <div class="settings-item-icon bg-blue">📂</div>
+                                <div class="settings-item-text">
+                                    <h4>File Manager</h4>
+                                    <p>Kelola file konten</p>
+                                </div>
+                            </div>
+                            <span>›</span>
+                        </div>
+                        <div class="settings-item" onclick="changePIN()">
+                            <div class="settings-item-left">
+                                <div class="settings-item-icon bg-orange">🔒</div>
+                                <div class="settings-item-text">
+                                    <h4>Ubah PIN</h4>
+                                    <p>Ganti PIN keluar aplikasi</p>
+                                </div>
+                            </div>
+                            <span>›</span>
+                        </div>
+                        <div class="settings-item" onclick="toggleKiosk()">
+                            <div class="settings-item-left">
+                                <div class="settings-item-icon bg-purple">📱</div>
+                                <div class="settings-item-text">
+                                    <h4>Mode Kiosk</h4>
+                                    <p>Cegah keluar dari aplikasi</p>
+                                </div>
+                            </div>
+                            <div class="toggle ${CONFIG.kioskMode ? 'on' : ''}" id="kioskToggle"></div>
+                        </div>
+                        <div class="settings-item" onclick="resetPoints()">
+                            <div class="settings-item-left">
+                                <div class="settings-item-icon bg-red">⭐</div>
+                                <div class="settings-item-text">
+                                    <h4>Reset Poin Hafiz</h4>
+                                    <p>Poin saat ini: ${CONFIG.hafizPoints}</p>
+                                </div>
+                            </div>
+                            <span>›</span>
+                        </div>
+                        <div class="settings-item" onclick="resetDailyJuz()">
+                            <div class="settings-item-left">
+                                <div class="settings-item-icon bg-teal">📅</div>
+                                <div class="settings-item-text">
+                                    <h4>Reset Juz Harian</h4>
+                                    <p>Juz saat ini: ${CONFIG.dailyJuz}</p>
+                                </div>
+                            </div>
+                            <span>›</span>
+                        </div>
+                        <div class="settings-item" onclick="clearFileMap()">
+                            <div class="settings-item-left">
+                                <div class="settings-item-icon bg-pink">🗑️</div>
+                                <div class="settings-item-text">
+                                    <h4>Hapus Data File</h4>
+                                    <p>Reset mapping file</p>
+                                </div>
+                            </div>
+                            <span>›</span>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <div class="settings-item" onclick="showAbout()">
+                            <div class="settings-item-left">
+                                <div class="settings-item-icon bg-indigo">ℹ️</div>
+                                <div class="settings-item-text">
+                                    <h4>Tentang Aplikasi</h4>
+                                    <p>Smart Hafiz v2.0 - Memory Card Edition</p>
+                                </div>
+                            </div>
+                            <span>›</span>
+                        </div>
+                        <div class="settings-item" onclick="requestExit()">
+                            <div class="settings-item-left">
+                                <div class="settings-item-icon bg-red">🚪</div>
+                                <div class="settings-item-text">
+                                    <h4>Keluar Aplikasi</h4>
+                                    <p>Memerlukan PIN</p>
+                                </div>
+                            </div>
+                            <span>›</span>
+                        </div>
+                    </div>
+
+                    <div style="text-align:center; padding: 20px; color: #999; font-size: 12px;">
+                        Smart Hafiz v2.0 - Memory Card Edition<br>
+                        Solusi Pintar Menghafal Al-Quran<br>
+                        © 2024
+                    </div>
+                </div>
+            `;
+            content.scrollTop = 0;
+        }
+
+        function renderFileManager() {
+            const content = document.getElementById('appContent');
+            
+            const folders = {};
+            Object.entries(CONFIG.fileMap).forEach(([key, file]) => {
+                const folder = file.folder;
+                if (!folders[folder]) folders[folder] = [];
+                folders[folder].push(file);
+            });
+
+            let folderListHTML = Object.entries(folders).map(([folder, files]) => {
+                const totalSize = files.reduce((sum, f) => sum + f.size, 0);
+                const sizeMB = (totalSize / (1024 * 1024)).toFixed(2);
+                return `
+                    <div class="folder-item">
+                        <div class="folder-item-left">
+                            <span class="folder-icon"></span>
+                            <div>
+                                <div class="folder-name">/${folder}/</div>
+                                <div class="folder-count">${files.length} file • ${sizeMB} MB</div>
+                            </div>
+                        </div>
+                        <span class="folder-status ready">✓ Ready</span>
+                    </div>
+                `;
+            }).join('');
+
+            if (Object.keys(folders).length === 0) {
+                folderListHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📂</div>
+                        <h3>Tidak Ada File</h3>
+                        <p>Pilih folder SmartHafiz dari memory card</p>
+                    </div>
+                `;
+            }
+
+            content.innerHTML = `
+                <div class="fade-in">
+                    <div class="back-bar">
+                        <button class="back-btn" onclick="goBack()">← Kembali</button>
+                    </div>
+                    <div class="page-title">
+                        <span class="icon">📂</span> File Manager
+                    </div>
+
+                    <div class="file-manager-card">
+                        <h3>📊 Folder Konten</h3>
+                        <div class="folder-list">
+                            ${folderListHTML}
+                        </div>
+                        <button class="btn-scan" onclick="triggerFolderSelect()">
+                            📁 Scan Folder Baru
+                        </button>
+                        <button class="btn-secondary" onclick="rescanFiles()">
+                            🔄 Rescan Folder Saat Ini
+                        </button>
+                    </div>
+
+                    <div class="file-manager-card">
+                        <h3>📋 Panduan Struktur Folder</h3>
+                        <div style="font-size: 13px; line-height: 1.6; color: var(--text-light);">
+                            <p style="margin-bottom: 10px;"><strong>Buat folder di memory card:</strong></p>
+                            <code style="background: #f0f0f0; padding: 10px; border-radius: 8px; display: block; font-size: 12px;">
+📁 SmartHafiz/<br>
+&nbsp;&nbsp; mengaji/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;📄 metode-alqolam.mp4<br>
+&nbsp;&nbsp;&nbsp;&nbsp;📄 tutorial-wudhu.mp4<br>
+&nbsp;&nbsp;📁 lagu/<br>
+&nbsp;&nbsp;&nbsp;&nbsp; lagu-islami.mp4<br>
+&nbsp;&nbsp;📁 cerita/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;📄 kisah-25-nabi.mp4<br>
+&nbsp;&nbsp;📁 film/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;📄 seri-ibadah.mp4
+                            </code>
+                            <p style="margin-top: 10px;"><strong>Format yang didukung:</strong><br>
+                            Video: MP4, AVI, MKV, MOV, WMV<br>
+                            Audio: MP3, WAV, OGG<br>
+                            Image: JPG, PNG</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            content.scrollTop = 0;
+        }
+
+        // ===== VIDEO PLAYER =====
+        function playContent(contentId, title, category, folder) {
+            const player = document.getElementById('videoPlayer');
+            const video = document.getElementById('mainVideo');
+            const placeholder = document.getElementById('videoPlaceholder');
+            const titleEl = document.getElementById('videoTitle');
+            const catEl = document.getElementById('videoCategory');
+            const placeholderTitle = document.getElementById('placeholderTitle');
+            const placeholderDesc = document.getElementById('placeholderDesc');
+
+            titleEl.textContent = title;
+            catEl.textContent = category || 'Smart Hafiz';
+            placeholderTitle.textContent = title;
+            placeholderDesc.textContent = 'Tekan play untuk memulai';
+
+            // Try to get file from memory card
+            const fileObj = getFileObject(folder, contentId);
+            
+            if (fileObj) {
+                // Create object URL from File object
+                const objectURL = URL.createObjectURL(fileObj);
+                video.src = objectURL;
+                video.load();
+                placeholderDesc.textContent = `File: ${fileObj.filename}`;
+            } else {
+                // Fallback to demo mode
+                video.src = '';
+                placeholder.style.display = 'flex';
+                placeholderDesc.textContent = 'File tidak ditemukan di memory card';
+            }
+
+            player.classList.add('active');
+            CONFIG.currentVideo = { id: contentId, title: title, folder: folder };
+
+            // Add hafiz points
+            addHafizPoints(1);
+
+            // Show controls briefly
+            showControls();
+        }
+
+        function togglePlay() {
+            const video = document.getElementById('mainVideo');
+            const playBtn = document.getElementById('playBtn');
+            const placeholder = document.getElementById('videoPlaceholder');
+
+            if (video.src) {
+                if (video.paused) {
+                    video.play().then(() => {
+                        placeholder.style.display = 'none';
+                        playBtn.textContent = '️';
+                        startProgressUpdate();
+                    }).catch((err) => {
+                        showToast('❌ Gagal memutar video: ' + err.message);
+                        playBtn.textContent = '▶️';
+                    });
+                } else {
+                    video.pause();
+                    playBtn.textContent = '▶️';
+                    stopProgressUpdate();
+                }
+            } else {
+                showToast('📹 Mode Demo - File tidak tersedia');
+            }
+        }
+
+        function skipForward() {
+            const video = document.getElementById('mainVideo');
+            if (video.duration) {
+                video.currentTime = Math.min(video.currentTime + 10, video.duration);
+            }
+            showSpeedIndicator('⏩ +10s');
+        }
+
+        function skipBackward() {
+            const video = document.getElementById('mainVideo');
+            video.currentTime = Math.max(video.currentTime - 10, 0);
+            showSpeedIndicator('⏪ -10s');
+        }
+
+        function changeSpeed(delta) {
+            const video = document.getElementById('mainVideo');
+            CONFIG.videoSpeed = Math.max(0.25, Math.min(3.0, CONFIG.videoSpeed + delta));
+            video.playbackRate = CONFIG.videoSpeed;
+            showSpeedIndicator(CONFIG.videoSpeed.toFixed(2) + 'x');
+        }
+
+        function showSpeedIndicator(text) {
+            const indicator = document.getElementById('speedIndicator');
+            indicator.textContent = text;
+            indicator.classList.add('show');
+            setTimeout(() => indicator.classList.remove('show'), 1000);
+        }
+
+        function seekVideo(event) {
+            const video = document.getElementById('mainVideo');
+            const bar = document.getElementById('progressBar');
+            const rect = bar.getBoundingClientRect();
+            const percent = (event.clientX - rect.left) / rect.width;
+            if (video.duration) {
+                video.currentTime = percent * video.duration;
+            }
+        }
+
+        function startProgressUpdate() {
+            stopProgressUpdate();
+            videoInterval = setInterval(() => {
+                const video = document.getElementById('mainVideo');
+                const fill = document.getElementById('progressFill');
+                const currentTimeEl = document.getElementById('currentTime');
+                const totalTimeEl = document.getElementById('totalTime');
+
+                if (video.duration) {
+                    const percent = (video.currentTime / video.duration) * 100;
+                    fill.style.width = percent + '%';
+                    currentTimeEl.textContent = formatTime(video.currentTime);
+                    totalTimeEl.textContent = formatTime(video.duration);
+                }
+            }, 100);
+        }
+
+        function stopProgressUpdate() {
+            if (videoInterval) {
+                clearInterval(videoInterval);
+                videoInterval = null;
+            }
+        }
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '00:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function closeVideo() {
+            const player = document.getElementById('videoPlayer');
+            const video = document.getElementById('mainVideo');
+            video.pause();
+            if (video.src && video.src.startsWith('blob:')) {
+                URL.revokeObjectURL(video.src);
+            }
+            video.src = '';
+            stopProgressUpdate();
+            player.classList.remove('active');
+            CONFIG.currentVideo = null;
+        }
+
+        function showControls() {
+            const controls = document.getElementById('videoControls');
+            const titleBar = document.getElementById('videoTitleBar');
+            controls.style.opacity = '1';
+            titleBar.style.opacity = '1';
+            
+            clearTimeout(controlsTimeout);
+            controlsTimeout = setTimeout(() => {
+                if (!document.getElementById('mainVideo').paused) {
+                    controls.style.opacity = '0';
+                    titleBar.style.opacity = '0';
+                }
+            }, 5000);
+        }
+
+        // Toggle controls on tap
+        document.getElementById('videoContainer').addEventListener('click', function(e) {
+            if (e.target.closest('.vid-btn') || e.target.closest('.vid-btn-close') || 
+                e.target.closest('.video-progress-bar')) return;
+            
+            const controls = document.getElementById('videoControls');
+            const titleBar = document.getElementById('videoTitleBar');
+            
+            if (controls.style.opacity === '0' || !controls.style.opacity) {
+                controls.style.opacity = '1';
+                titleBar.style.opacity = '1';
+                clearTimeout(controlsTimeout);
+                controlsTimeout = setTimeout(() => {
+                    if (!document.getElementById('mainVideo').paused) {
+                        controls.style.opacity = '0';
+                        titleBar.style.opacity = '0';
+                    }
+                }, 5000);
+            } else {
+                controls.style.opacity = '0';
+                titleBar.style.opacity = '0';
+            }
+        });
+
+        // Video events
+        document.getElementById('mainVideo').addEventListener('ended', function() {
+            document.getElementById('playBtn').textContent = '▶️';
+            stopProgressUpdate();
+            addHafizPoints(5);
+            showToast('✅ Video selesai! +5 Poin Hafiz');
+        });
+
+        document.getElementById('mainVideo').addEventListener('error', function(e) {
+            showToast('❌ Error memutar video');
+        });
+
+        // ===== HAFIZ POINTS =====
+        function addHafizPoints(points) {
+            CONFIG.hafizPoints += points;
+            localStorage.setItem('hafizPoints', CONFIG.hafizPoints.toString());
+        }
+
+        function resetPoints() {
+            if (confirm('Reset semua poin hafiz?')) {
+                CONFIG.hafizPoints = 0;
+                localStorage.setItem('hafizPoints', '0');
+                showToast('✅ Poin hafiz direset');
+                renderSettings();
+            }
+        }
+
+        // ===== DAILY JUZ =====
+        function checkDailyJuz() {
+            const today = new Date().toDateString();
+            if (CONFIG.lastOpenDate !== today) {
+                CONFIG.dailyJuz = (CONFIG.dailyJuz % 30) + 1;
+                CONFIG.lastOpenDate = today;
+                localStorage.setItem('dailyJuz', CONFIG.dailyJuz.toString());
+                localStorage.setItem('lastOpenDate', today);
+            }
+        }
+
+        function resetDailyJuz() {
+            if (confirm('Reset juz harian ke Juz 1?')) {
+                CONFIG.dailyJuz = 1;
+                localStorage.setItem('dailyJuz', '1');
+                showToast('✅ Juz harian direset ke Juz 1');
+                renderSettings();
+            }
+        }
+
+        // ===== SETTINGS FUNCTIONS =====
+        function changePIN() {
+            const newPIN = prompt('Masukkan PIN baru (4-6 digit):');
+            if (newPIN && newPIN.length >= 4 && newPIN.length <= 6) {
+                CONFIG.pin = newPIN;
+                localStorage.setItem('smartHafizPIN', newPIN);
+                showToast('✅ PIN berhasil diubah');
+            } else if (newPIN) {
+                showToast('❌ PIN harus 4-6 digit');
+            }
+        }
+
+        function toggleKiosk() {
+            CONFIG.kioskMode = !CONFIG.kioskMode;
+            const toggle = document.getElementById('kioskToggle');
+            if (toggle) toggle.classList.toggle('on');
+            showToast(CONFIG.kioskMode ? '✅ Mode Kiosk aktif' : '⚠️ Mode Kiosk nonaktif');
+        }
+
+        function clearFileMap() {
+            if (confirm('Hapus semua data mapping file? File asli tidak akan terhapus.')) {
+                CONFIG.fileMap = {};
+                fileObjects = {};
+                localStorage.setItem('smartHafizFileMap', '{}');
+                showToast('✅ Data file direset');
+                renderSettings();
+            }
+        }
+
+        function rescanFiles() {
+            triggerFolderSelect();
+        }
+
+        function showAbout() {
+            alert('Smart Hafiz v2.0 - Memory Card Edition\n\nSolusi Pintar Menghafal Al-Quran\nAplikasi edukasi islami untuk anak-anak.\n\nFitur:\n• Baca file dari Memory Card/SD Card\n• Video Player dengan kontrol lengkap\n• Mode Kiosk (anti keluar)\n• Hafiz Point System\n• One Day One Juz\n• File Manager\n\nTotal file: ' + Object.keys(CONFIG.fileMap).length);
+        }
+
+        // ===== EXIT PROTECTION =====
+        function requestExit() {
+            document.getElementById('passwordModal').classList.add('active');
+            document.getElementById('exitPassword').value = '';
+            document.getElementById('exitPassword').focus();
+        }
+
+        function closePasswordModal() {
+            document.getElementById('passwordModal').classList.remove('active');
+        }
+
+        function verifyExitPassword() {
+            const input = document.getElementById('exitPassword').value;
+            if (input === CONFIG.pin) {
+                closePasswordModal();
+                exitFullscreen();
+                document.getElementById('mainApp').classList.remove('active');
+                document.getElementById('lockScreen').classList.remove('hidden');
+                document.getElementById('lockPassword').value = '';
+                showToast('👋 Sampai jumpa!');
+            } else {
+                showToast('❌ PIN salah!');
+                document.getElementById('exitPassword').value = '';
+            }
+        }
+
+        // ===== FULLSCREEN =====
+        function requestFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(() => {});
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        }
+
+        function exitFullscreen() {
+            if (document.exitFullscreen) {
+                document.exitFullscreen().catch(() => {});
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+        }
+
+        function toggleFullscreen() {
+            if (document.fullscreenElement) {
+                exitFullscreen();
+            } else {
+                requestFullscreen();
+            }
+        }
+
+        // ===== TOAST =====
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // ===== PREVENT EXIT =====
+        window.addEventListener('beforeunload', function(e) {
+            if (CONFIG.kioskMode && document.getElementById('mainApp').classList.contains('active')) {
+                e.preventDefault();
+                e.returnValue = 'Aplikasi Smart Hafiz sedang berjalan. Masukkan PIN untuk keluar.';
+            }
+        });
+
+        // Prevent swipe back on mobile
+        let touchStartX = 0;
+        document.addEventListener('touchstart', function(e) {
+            touchStartX = e.touches[0].clientX;
+        });
+
+        document.addEventListener('touchend', function(e) {
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchEndX - touchStartX;
+            if (touchStartX < 30 && diff > 100) {
+                e.preventDefault();
+            }
+        });
+
+        // Keyboard shortcut prevention
+        document.addEventListener('keydown', function(e) {
+            if (CONFIG.kioskMode) {
+                if (e.key === 'F5' || e.key === 'F11' || e.key === 'Escape') {
+                    e.preventDefault();
+                }
+                if (e.altKey && e.key === 'F4') {
+                    e.preventDefault();
+                }
+                if (e.ctrlKey && (e.key === 'w' || e.key === 't')) {
+                    e.preventDefault();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
