@@ -8,8 +8,6 @@
     <meta name="theme-color" content="#1a7a4c">
     <title>Smart Hafiz - Belajar Seru!</title>
     
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
         html, body { width: 100%; height: 100%; overflow: hidden; position: fixed; }
@@ -51,9 +49,6 @@
         .hero-stats { display: flex; gap: 15px; margin-top: 12px; }
         .hero-stat { background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 12px; font-size: 12px; }
         .hero-stat-value { font-size: 18px; font-weight: bold; }
-        
-        .sync-status { position: fixed; top: 60px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 6px 12px; border-radius: 20px; font-size: 11px; z-index: 100; display: none; }
-        .sync-status.show { display: block; }
         
         .progress-card { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 16px; padding: 16px; color: white; margin-bottom: 16px; }
         .progress-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
@@ -106,6 +101,7 @@
         .btn-download.downloaded { background: #4CAF50; color: white; border-color: #4CAF50; }
         .btn-gold { background: gold; color: #000; }
         .btn-warning { background: #ff9800; color: white; }
+        .btn-success { background: #4CAF50; color: white; }
         
         .video-detail-card { background: white; border-radius: 16px; padding: 20px; box-shadow: var(--shadow); text-align: center; margin-bottom: 16px; }
         .video-detail-icon { font-size: 60px; margin-bottom: 12px; }
@@ -114,80 +110,8 @@
         .video-size-badge, .video-folder-tag { background: #f0f0f0; padding: 6px 14px; border-radius: 20px; display: inline-block; margin-bottom: 10px; font-size: 11px; }
         .video-folder-tag { background: #fff3e0; color: #e65100; }
         
-        /* VIDEO PLAYER - OPTIMIZED FOR CLEAN VIEW */
-        #streamingPlayer { 
-            position: fixed; top: 0; left: 0; width: 100dvw; height: 100dvh; 
-            background: #1a1a1a; z-index: 9999; display: none; flex-direction: column; 
-        }
-        #streamingPlayer.active { display: flex; }
-        
-        #streamingPlayer:fullscreen .player-header,
-        #streamingPlayer:-webkit-full-screen .player-header {
-            display: none; 
-        }
-        
-        .player-header { 
-            background: rgba(26,26,26,0.95); color: white; padding: 10px 12px; 
-            display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; gap: 6px; 
-            z-index: 10;
-        }
-        .player-title { font-size: 13px; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
-        .player-btn { width: 36px; height: 36px; border: none; border-radius: 50%; background: rgba(255,255,255,0.15); color: white; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .claim-btn { width: auto !important; padding: 0 12px !important; border-radius: 20px !important; font-size: 12px !important; background: #4CAF50 !important; font-weight: bold; gap: 4px; color: white !important; }
-        
-        .player-container { 
-            flex: 1; width: 100%; position: relative; overflow: hidden; 
-            background: #1a1a1a;
-            display: flex; align-items: center; justify-content: center; 
-        }
-        
-        /* IFRAME OPTIMIZED - NO BLACK BORDERS */
-        #playerIframe { 
-            width: 100%; 
-            height: 100%; 
-            border: none;
-            background: transparent;
-        }
-        
-        /* Loading overlay yang lebih clean */
-        .video-loading-overlay {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 5;
-            transition: opacity 0.5s ease;
-        }
-        .video-loading-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        .video-loading-spinner {
-            width: 70px;
-            height: 70px;
-            border: 6px solid rgba(255,255,255,0.2);
-            border-top: 6px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .video-loading-text {
-            color: white;
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        .video-loading-subtext {
-            color: rgba(255,255,255,0.8);
-            font-size: 13px;
-        }
+        .info-box { background: #e3f2fd; border-left: 4px solid #2196F3; border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 12px; color: #1565c0; text-align: left; }
+        .info-box strong { display: block; margin-bottom: 4px; font-size: 13px; }
         
         .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: white; padding: 10px 20px; border-radius: 50px; font-size: 13px; z-index: 9999; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; white-space: nowrap; pointer-events: none; max-width: 85%; overflow: hidden; text-overflow: ellipsis; }
         .toast.show { opacity: 1; visibility: visible; }
@@ -226,21 +150,23 @@
         .cert-stat-value { font-size: 36px; font-weight: bold; }
         .cert-stat-label { font-size: 12px; opacity: 0.9; }
         
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-light); }
+        .empty-icon { font-size: 50px; margin-bottom: 12px; }
+        
         @media (min-width: 500px) { .category-grid { grid-template-columns: repeat(3, 1fr); } .app-content { max-width: 600px; margin: 0 auto; } }
     </style>
 </head>
 <body>
 
     <div id="lockScreen">
-        <div class="lock-logo"></div>
+        <div class="lock-logo">📖</div>
         <div class="lock-title">Smart Hafiz</div>
-        <div class="lock-subtitle">Belajar Seru Setiap Hari! 🌟</div>
+        <div class="lock-subtitle">Belajar Seru Setiap Hari! </div>
         <input type="password" class="lock-input" id="lockPassword" placeholder="PIN (1234)" maxlength="6" inputmode="numeric">
         <button class="lock-btn" onclick="enterApp()">🔓 Masuk</button>
         <div style="color: rgba(255,255,255,0.6); font-size: 11px; margin-top: 15px;">PIN: 1234</div>
     </div>
 
-    <div class="sync-status" id="syncStatus"><span id="syncStatusText">🔄 Syncing...</span></div>
     <div class="reward-badge" id="rewardBadge" style="display:none;">⭐ <span id="rewardPoints">0</span> Poin</div>
 
     <div id="mainApp">
@@ -254,38 +180,16 @@
             </div>
             <div class="header-right">
                 <button class="header-btn" onclick="manualSync()" title="Sync">🔄</button>
-                <button class="header-btn" onclick="navigateTo('settings')" title="Settings">️</button>
+                <button class="header-btn" onclick="navigateTo('settings')" title="Settings">⚙️</button>
             </div>
         </div>
         <div class="app-content" id="appContent"></div>
         <div class="bottom-nav">
             <button class="nav-item active" onclick="navigateTo('home')" id="navHome"><span class="nav-icon">🏠</span><span class="nav-label">Beranda</span></button>
             <button class="nav-item" onclick="navigateTo('category', {category: 'mengaji'})" id="navMengaji"><span class="nav-icon">📖</span><span class="nav-label">Mengaji</span></button>
-            <button class="nav-item" onclick="navigateTo('category', {category: 'cerita'})" id="navCerita"><span class="nav-icon"></span><span class="nav-label">Cerita</span></button>
-            <button class="nav-item" onclick="navigateTo('rewards')" id="navRewards"><span class="nav-icon"></span><span class="nav-label">Hadiah</span></button>
+            <button class="nav-item" onclick="navigateTo('category', {category: 'cerita'})" id="navCerita"><span class="nav-icon">📚</span><span class="nav-label">Cerita</span></button>
+            <button class="nav-item" onclick="navigateTo('rewards')" id="navRewards"><span class="nav-icon">🎁</span><span class="nav-label">Hadiah</span></button>
             <button class="nav-item" onclick="navigateTo('settings')" id="navSettings"><span class="nav-icon">⚙️</span><span class="nav-label">Lainnya</span></button>
-        </div>
-    </div>
-
-    <div id="streamingPlayer">
-        <div class="player-header" id="playerHeader">
-            <button class="player-btn" id="prevVideoBtn" style="display:none;" title="Sebelumnya">⏮️</button>
-            <div class="player-title" id="playerTitle">Judul Video</div>
-            <button class="player-btn" id="nextVideoBtn" style="display:none;" title="Selanjutnya">⏭️</button>
-            <button class="player-btn claim-btn" id="claimPointsBtn" style="display:none;" title="Klaim Poin">✅ Selesai</button>
-            <button class="player-btn" onclick="toggleFullscreen()" title="Layar Penuh Horizontal">⛶</button>
-            <button class="player-btn" onclick="closePlayer()" title="Tutup">✕</button>
-        </div>
-        <div class="player-container" id="playerContainer">
-            <!-- LOADING OVERLAY DENGAN GRADIENT CANTIK -->
-            <div class="video-loading-overlay" id="videoLoadingOverlay">
-                <div class="video-loading-spinner"></div>
-                <div class="video-loading-text">📹 Memuat Video...</div>
-                <div class="video-loading-subtext">Mohon tunggu sebentar</div>
-            </div>
-            
-            <!-- IFRAME DENGAN URL OPTIMIZED -->
-            <iframe id="playerIframe" allowfullscreen allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
         </div>
     </div>
 
@@ -303,14 +207,14 @@
             { id: 'sticker_pack', name: '🎨 Paket Stiker Premium', points: 50, icon: '🎨', description: 'Dapatkan 5 stiker eksklusif', type: 'sticker' },
             { id: 'premium_story', name: '📚 Cerita Premium', points: 100, icon: '📚', description: 'Akses 10 cerita premium', type: 'content' },
             { id: 'mini_game', name: '🎮 Mini Game Edukasi', points: 200, icon: '🎮', description: 'Buka game tebak huruf hijaiyah', type: 'game' },
-            { id: 'certificate', name: ' Sertifikat Hafiz', points: 500, icon: '🏆', description: 'Sertifikat digital atas nama Anda', type: 'certificate' }
+            { id: 'certificate', name: '🏆 Sertifikat Hafiz', points: 500, icon: '🏆', description: 'Sertifikat digital atas nama Anda', type: 'certificate' }
         ];
 
         function redeemReward(rewardId) {
             const reward = REWARDS_LIST.find(r => r.id === rewardId);
             if (!reward) return;
-            if (claimedRewards.includes(rewardId)) { showToast('️ Anda sudah pernah menukar hadiah ini!'); return; }
-            if (hafizPoints < reward.points) { showToast('❌ Poin tidak cukup! Butuh ' + reward.points + ' poin'); return; }
+            if (claimedRewards.includes(rewardId)) { showToast('⚠️ Anda sudah pernah menukar hadiah ini!'); return; }
+            if (hafizPoints < reward.points) { showToast(' Poin tidak cukup! Butuh ' + reward.points + ' poin'); return; }
             
             if (confirm(`Tukar ${reward.points} poin untuk "${reward.name}"?`)) {
                 hafizPoints -= reward.points;
@@ -327,7 +231,7 @@
         function giveReward(reward) {
             switch(reward.type) {
                 case 'sticker':
-                    const newStickers = ['🌟', '🕌', '📖', '', '🌙'];
+                    const newStickers = ['🌟', '🕌', '', '🤲', '🌙'];
                     newStickers.forEach(sticker => { if (!stickerCollection.includes(sticker)) stickerCollection.push(sticker); });
                     localStorage.setItem('stickerCollection', JSON.stringify(stickerCollection));
                     break;
@@ -354,7 +258,6 @@
         function claimVideoPoints(driveId, title) {
             if (watchedVideos.includes(driveId)) {
                 showToast('ℹ️ Poin untuk video ini sudah pernah diklaim!');
-                closePlayer();
                 return;
             }
             watchedVideos.push(driveId);
@@ -363,14 +266,6 @@
             localStorage.setItem('videosWatched', videosWatched.toString());
             addPoints(10);
             showToast(`🎉 "${title}" selesai ditonton! +10 Poin`);
-            closePlayer();
-        }
-
-        // ===== SUPABASE CONFIGURATION =====
-        const SUPABASE_CONFIG = { url: 'https://your-project.supabase.co', anonKey: 'your-anon-key', enabled: false };
-        let supabaseClient;
-        if (SUPABASE_CONFIG.enabled && typeof window.supabase !== 'undefined') {
-            supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
         }
 
         // ===== CONFIGURATION =====
@@ -393,7 +288,6 @@
         let userName = localStorage.getItem('userName') || 'Anak Hebat';
         let toastTimeout = null;
         let syncInProgress = false;
-        let videoLoadTimeout = null;
 
         // ===== INIT =====
         document.addEventListener('DOMContentLoaded', function() {
@@ -582,7 +476,7 @@
                     <div class="progress-text">${videosWatched} dari ${totalVideos} video ditonton sampai selesai (${Math.round(progressPercent)}%)</div>
                 </div>
                 <div class="feature-grid">
-                    <div class="feature-card" onclick="navigateTo('category', {category: 'mengaji'})"><div class="feature-icon" style="background:#1a7a4c;"></div><div class="feature-name">Mengaji</div></div>
+                    <div class="feature-card" onclick="navigateTo('category', {category: 'mengaji'})"><div class="feature-icon" style="background:#1a7a4c;">📖</div><div class="feature-name">Mengaji</div></div>
                     <div class="feature-card" onclick="navigateTo('category', {category: 'cerita'})"><div class="feature-icon" style="background:#7b1fa2;"></div><div class="feature-name">Cerita</div></div>
                     <div class="feature-card" onclick="navigateTo('rewards')"><div class="feature-icon" style="background:#f093fb;">🎁</div><div class="feature-name">Hadiah</div></div>
                     <div class="feature-card" onclick="showDailyJuz()"><div class="feature-icon" style="background:#667eea;">📅</div><div class="feature-name">Juz Harian</div></div>
@@ -592,13 +486,13 @@
                     <div class="category-grid">${categoryHTML || '<div class="empty-state"><div class="empty-icon"></div><p>Belum ada data. Klik 🔄 untuk sync.</p></div>'}</div>
                 </div>
                 <div class="debug-panel">
-                    <strong> Debug:</strong> ${totalVideos} video • ${totalFolders} folder<br>
+                    <strong>📊 Debug:</strong> ${totalVideos} video • ${totalFolders} folder<br>
                     <button onclick="manualSync()" style="background:#2196F3; color:white; border:none; padding:4px 10px; border-radius:4px; margin-top:6px; font-size:10px; cursor:pointer;">🔄 Sync</button>
-                    <button onclick="clearAllCache()" style="background:#f44336; color:white; border:none; padding:4px 10px; border-radius:4px; margin-top:6px; font-size:10px; cursor:pointer;">️ Clear</button>
+                    <button onclick="clearAllCache()" style="background:#f44336; color:white; border:none; padding:4px 10px; border-radius:4px; margin-top:6px; font-size:10px; cursor:pointer;">🗑️ Clear</button>
                 </div>`;
         }
 
-        function showDailyJuz() { showToast(`📖 Hari ini: Juz ${dailyJuz} dari 30`); addPoints(5); }
+        function showDailyJuz() { showToast(` Hari ini: Juz ${dailyJuz} dari 30`); addPoints(5); }
 
         function renderCategory(categoryKey) {
             const category = CONTENT[categoryKey];
@@ -613,7 +507,7 @@
                     <div class="folder-text"><div class="folder-name">${folderName}</div><div class="folder-count">${folder.items.length} video</div></div>
                     <span style="font-size: 16px; color: var(--text-light);">›</span>
                 </div>`;
-            }).join('') : `<div class="empty-state"><div class="empty-icon">📭</div><p>Belum ada folder. Klik 🔄 untuk sync.</p></div>`;
+            }).join('') : `<div class="empty-state"><div class="empty-icon">📭</div><p>Belum ada folder. Klik  untuk sync.</p></div>`;
 
             document.getElementById('appContent').innerHTML = `
                 <button class="back-btn" onclick="goBack()">← Kembali</button>
@@ -630,10 +524,11 @@
             
             let videosHTML = items.map((item) => {
                 const isSaved = downloadedVideos.includes(item.driveId);
+                const isWatched = watchedVideos.includes(item.driveId);
                 return `<div class="video-item" onclick="navigateTo('videoDetail', {category: '${categoryKey}', folder: '${folderName.replace(/'/g, "\\'")}', itemId: '${item.id}'})">
-                    <div class="video-thumb" style="background:${category.color || '#1a7a4c'};"></div>
+                    <div class="video-thumb" style="background:${category.color || '#1a7a4c'};">🎬</div>
                     <div class="video-text">
-                        <div class="video-title">${item.name} ${isSaved ? '<span class="badge badge-downloaded">✓</span>' : '<span class="badge badge-online">Online</span>'}</div>
+                        <div class="video-title">${item.name} ${isWatched ? '<span class="badge badge-downloaded">✓</span>' : '<span class="badge badge-online">Online</span>'}</div>
                         <div class="video-meta">${item.size || ''}</div>
                     </div>
                     <span style="font-size: 16px; color: var(--text-light);">›</span>
@@ -655,6 +550,7 @@
             if (!item) return;
 
             const isSaved = downloadedVideos.includes(item.driveId);
+            const isWatched = watchedVideos.includes(item.driveId);
             const driveId = item.driveId;
             const safeName = item.name.replace(/'/g, "\\'");
             const safeFolder = folderName.replace(/'/g, "\\'");
@@ -669,147 +565,49 @@
                     <p class="video-detail-desc">${item.desc || 'Video edukasi Islami'}</p>
                     ${item.size ? `<div class="video-size-badge">📦 ${item.size}</div>` : ''}
                     
-                    <button class="btn-action btn-warning" onclick="openVideoInNewTab('${driveId}')" style="margin-top: 8px;">
-                        🌐 Buka di Tab Baru (Video Jernih & Cepat)
+                    ${isWatched ? '<div style="background:#e8f5e9; color:#2e7d32; padding:10px; border-radius:8px; margin-bottom:10px; font-size:13px; font-weight:600;">✅ Video ini sudah ditonton</div>' : ''}
+                    
+                    <button class="btn-action btn-warning" onclick="openAndClaim('${driveId}', '${safeName}')" style="font-size: 16px; padding: 16px;">
+                        🌐 BUKA VIDEO DI TAB BARU (Terjernih!)
                     </button>
                     
-                    <button class="btn-action btn-primary" onclick="streamVideo('${driveId}', '${safeName}', '${categoryKey}', '${safeFolder}', '${item.id}')">
-                        ▶️ Putar di Aplikasi
-                    </button>
-                    
-                    <button class="btn-action btn-secondary" onclick="downloadVideo('${driveId}', '${safeName}')">⬇️ Download</button>
-                    <button class="btn-action btn-download ${isSaved ? 'downloaded' : ''}" onclick="${isSaved ? `deleteVideo('${driveId}', '${safeName}', '${categoryKey}', '${safeFolder}')` : `addToDownloadedList('${driveId}', '${safeName}')`}">${isSaved ? '✓ Tersimpan (Hapus)' : '📥 Simpan ke Daftar'}</button>
-                    
-                    <div style="margin-top: 12px; padding: 10px; background: #fff3cd; border-radius: 8px; font-size: 11px; color: #856404;">
-                        💡 <strong>Tips:</strong> Gunakan "Buka di Tab Baru" untuk video yang lebih jernih dan fullscreen otomatis!
+                    <div class="info-box">
+                        <strong>💡 Kenapa Buka di Tab Baru?</strong>
+                        Video di Google Drive memiliki kontrol bawaan yang tidak bisa dihilangkan. 
+                        Dengan membuka di tab baru, Anda mendapat pengalaman menonton terbaik dengan layar penuh dan tanpa gangguan!
                     </div>
+                    
+                    ${!isWatched ? `<button class="btn-action btn-success" onclick="markAsWatched('${driveId}', '${safeName}')" style="margin-top: 8px;">
+                        ✅ Tandai Sudah Ditonton (+10 Poin)
+                    </button>` : ''}
+                    
+                    <button class="btn-action btn-secondary" onclick="downloadVideo('${driveId}', '${safeName}')">️ Download</button>
+                    <button class="btn-action btn-download ${isSaved ? 'downloaded' : ''}" onclick="${isSaved ? `deleteVideo('${driveId}', '${safeName}', '${categoryKey}', '${safeFolder}')` : `addToDownloadedList('${driveId}', '${safeName}')`}">${isSaved ? '✓ Tersimpan (Hapus)' : '📥 Simpan ke Daftar'}</button>
                 </div>`;
         }
 
-        function openVideoInNewTab(driveId) {
-            // URL optimized untuk embed yang clean
+        function openAndClaim(driveId, title) {
             window.open(`https://drive.google.com/file/d/${driveId}/preview`, '_blank');
-            showToast('🌐 Video dibuka di tab baru. Silakan putar & fullscreen!');
-        }
-
-        // ===== STREAM VIDEO DENGAN URL OPTIMIZED =====
-        function streamVideo(driveId, title, categoryKey, folderName, itemId) {
-            const loadingOverlay = document.getElementById('videoLoadingOverlay');
-            loadingOverlay.classList.remove('hidden');
+            showToast(' Video dibuka di tab baru! Tonton sampai selesai ya!');
             
-            document.getElementById('playerTitle').textContent = title;
-            
-            const iframe = document.getElementById('playerIframe');
-            
-            // URL dengan parameter untuk mengurangi UI bawaan
-            // rm=minimal = reduced minimal UI
-            // autoplay=1 = auto play
-            iframe.src = `https://drive.google.com/file/d/${driveId}/preview?rm=minimal&autoplay=1`;
-            
-            // Event listener untuk detect load complete
-            iframe.onload = function() {
-                setTimeout(() => {
-                    loadingOverlay.classList.add('hidden');
-                }, 800);
-            };
-            
-            const category = CONTENT[categoryKey];
-            if (category && category.folders && category.folders[folderName]) {
-                const items = category.folders[folderName].items;
-                const currentIndex = items.findIndex(i => i.id === itemId);
-                
-                const prevBtn = document.getElementById('prevVideoBtn');
-                const nextBtn = document.getElementById('nextVideoBtn');
-                const claimBtn = document.getElementById('claimPointsBtn');
-                
-                claimBtn.style.display = 'none';
-                claimBtn.onclick = null;
-
-                if (currentIndex > 0) {
-                    const prevItem = items[currentIndex - 1];
-                    prevBtn.style.display = 'flex';
-                    prevBtn.onclick = () => streamVideo(prevItem.driveId, prevItem.name, categoryKey, folderName, prevItem.id);
-                } else prevBtn.style.display = 'none';
-                
-                if (currentIndex < items.length - 1) {
-                    const nextItem = items[currentIndex + 1];
-                    nextBtn.style.display = 'flex';
-                    nextBtn.onclick = () => streamVideo(nextItem.driveId, nextItem.name, categoryKey, folderName, nextItem.id);
-                } else nextBtn.style.display = 'none';
-            }
-            
-            document.getElementById('streamingPlayer').classList.add('active');
-            
-            // Auto fullscreen setelah player aktif
             setTimeout(() => {
-                toggleFullscreen();
-            }, 500);
-            
-            // Timer untuk tombol klaim poin
-            if (claimBtn) {
-                setTimeout(() => {
-                    claimBtn.style.display = 'flex';
-                    claimBtn.onclick = () => claimVideoPoints(driveId, title);
-                }, 15000);
-            }
-            
-            // Fallback timeout
-            if (videoLoadTimeout) clearTimeout(videoLoadTimeout);
-            videoLoadTimeout = setTimeout(() => {
-                loadingOverlay.classList.add('hidden');
-            }, 12000);
+                if (!watchedVideos.includes(driveId)) {
+                    if (confirm(`Apakah Anda sudah selesai menonton "${title}"?\n\nKlik OK untuk klaim +10 poin!`)) {
+                        claimVideoPoints(driveId, title);
+                    }
+                }
+            }, 3000);
         }
 
-        function closePlayer() {
-            if (videoLoadTimeout) {
-                clearTimeout(videoLoadTimeout);
-                videoLoadTimeout = null;
+        function markAsWatched(driveId, title) {
+            if (watchedVideos.includes(driveId)) {
+                showToast('ℹ️ Video ini sudah pernah ditandai selesai!');
+                return;
             }
             
-            const iframe = document.getElementById('playerIframe');
-            const loadingOverlay = document.getElementById('videoLoadingOverlay');
-            
-            iframe.src = '';
-            loadingOverlay.classList.remove('hidden');
-            document.getElementById('streamingPlayer').classList.remove('active');
-            document.getElementById('prevVideoBtn').style.display = 'none';
-            document.getElementById('nextVideoBtn').style.display = 'none';
-            document.getElementById('claimPointsBtn').style.display = 'none';
-            
-            if (document.fullscreenElement) {
-                if (document.exitFullscreen) document.exitFullscreen();
-                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-            }
-            if (screen.orientation && screen.orientation.unlock) {
-                screen.orientation.unlock();
-            }
-        }
-
-        function toggleFullscreen() {
-            const player = document.getElementById('streamingPlayer');
-            
-            if (!document.fullscreenElement) {
-                if (player.requestFullscreen) {
-                    player.requestFullscreen().catch(err => console.log('Fullscreen error:', err));
-                } else if (player.webkitRequestFullscreen) {
-                    player.webkitRequestFullscreen();
-                } else if (player.msRequestFullscreen) {
-                    player.msRequestFullscreen();
-                }
-                
-                if (screen.orientation && screen.orientation.lock) {
-                    screen.orientation.lock('landscape').catch(e => console.log('Orientation lock failed:', e));
-                }
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                }
-                
-                if (screen.orientation && screen.orientation.unlock) {
-                    screen.orientation.unlock();
-                }
+            if (confirm(`Tandai "${title}" sebagai sudah ditonton?\n\nAnda akan mendapat +10 poin!`)) {
+                claimVideoPoints(driveId, title);
+                showVideoDetail(currentCategory, currentFolder, CONTENT[currentCategory].folders[currentFolder].items.find(i => i.driveId === driveId).id);
             }
         }
 
@@ -869,7 +667,7 @@
             
             document.getElementById('appContent').innerHTML = `
                 <button class="back-btn" onclick="goBack()">← Kembali</button>
-                <div class="page-title"> Hadiah & Rewards</div>
+                <div class="page-title">🎁 Hadiah & Rewards</div>
                 <div class="hero-banner" style="margin-bottom: 16px;">
                     <div class="hero-greeting">Poin Kamu</div>
                     <div class="hero-name" style="font-size: 36px;">⭐ ${hafizPoints}</div>
@@ -879,13 +677,13 @@
                     </div>
                 </div>
                 <div class="settings-group">
-                    <div style="padding: 14px 16px; background: #f0f0f0; font-size: 13px; font-weight: 600;"> Cara Dapat Poin:</div>
-                    <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e8f5e9;">🎬</div><div class="settings-item-text"><h4>Tonton Video Sampai Selesai</h4><p>+10 poin (Klik tombol "Selesai")</p></div></div></div>
+                    <div style="padding: 14px 16px; background: #f0f0f0; font-size: 13px; font-weight: 600;">🎯 Cara Dapat Poin:</div>
+                    <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e8f5e9;">🎬</div><div class="settings-item-text"><h4>Tonton Video Sampai Selesai</h4><p>+10 poin (Klik "Tandai Sudah Ditonton")</p></div></div></div>
                     <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd;">💾</div><div class="settings-item-text"><h4>Download Video</h4><p>+5 poin setiap download</p></div></div></div>
-                    <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0;">📅</div><div class="settings-item-text"><h4>Juz Harian</h4><p>+5 poin setiap cek juz</p></div></div></div>
+                    <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0;"></div><div class="settings-item-text"><h4>Juz Harian</h4><p>+5 poin setiap cek juz</p></div></div></div>
                 </div>
                 <div class="settings-group">
-                    <div style="padding: 14px 16px; background: #f0f0f0; font-size: 13px; font-weight: 600;">🎁 Tukar Poin:</div>
+                    <div style="padding: 14px 16px; background: #f0f0f0; font-size: 13px; font-weight: 600;"> Tukar Poin:</div>
                     ${rewardsHTML}
                 </div>
                 ${stickerSection}
@@ -896,14 +694,14 @@
         function renderSettings() {
             document.getElementById('appContent').innerHTML = `
                 <button class="back-btn" onclick="goBack()">← Kembali</button>
-                <div class="page-title">️ Pengaturan</div>
+                <div class="page-title">⚙️ Pengaturan</div>
                 <div class="settings-group">
                     <div class="settings-item" onclick="promptUserName()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd;">👤</div><div class="settings-item-text"><h4>Nama Anak</h4><p>${userName}</p></div></div><span>›</span></div>
                     <div class="settings-item" onclick="manualSync()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0; color:#e65100;">🔄</div><div class="settings-item-text"><h4>Manual Sync</h4><p>Ambil data dari Drive</p></div></div><span>›</span></div>
                     <div class="settings-item" onclick="clearAllCache()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#ffebee; color:#c62828;">🗑️</div><div class="settings-item-text"><h4>Clear Cache</h4><p>Hapus data lokal</p></div></div><span>›</span></div>
                     <div class="settings-item" onclick="resetProgress()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd; color:#1565c0;">🔄</div><div class="settings-item-text"><h4>Reset Progress</h4><p>Reset poin & video</p></div></div><span>›</span></div>
                 </div>
-                <div style="text-align:center; padding:14px; color:var(--text-light); font-size:10px;">Smart Hafiz v16.0<br>Belajar Seru Setiap Hari!<br>© 2024</div>`;
+                <div style="text-align:center; padding:14px; color:var(--text-light); font-size:10px;">Smart Hafiz v18.0<br>Belajar Seru Setiap Hari!<br>© 2024</div>`;
         }
 
         function promptUserName() { const newName = prompt('Masukkan nama anak:', userName); if (newName && newName.trim()) { userName = newName.trim(); localStorage.setItem('userName', userName); showToast(`✅ Nama diubah menjadi ${userName}`); renderSettings(); } }
