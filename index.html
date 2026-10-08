@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="screen-orientation" content="landscape">
     <meta name="theme-color" content="#1a7a4c">
     <title>Smart Hafiz - Belajar Seru!</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
@@ -51,9 +51,6 @@
         .hero-stats { display: flex; gap: 15px; margin-top: 12px; }
         .hero-stat { background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 12px; font-size: 12px; }
         .hero-stat-value { font-size: 18px; font-weight: bold; }
-        
-        .sync-status { position: fixed; top: 60px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 6px 12px; border-radius: 20px; font-size: 11px; z-index: 100; display: none; }
-        .sync-status.show { display: block; }
         
         .progress-card { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 16px; padding: 16px; color: white; margin-bottom: 16px; }
         .progress-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
@@ -114,30 +111,49 @@
         .video-size-badge, .video-folder-tag { background: #f0f0f0; padding: 6px 14px; border-radius: 20px; display: inline-block; margin-bottom: 10px; font-size: 11px; }
         .video-folder-tag { background: #fff3e0; color: #e65100; }
         
-        /* VIDEO PLAYER - OPTIMIZED FOR TRUE FULLSCREEN */
+        /* VIDEO PLAYER - FULLSCREEN OPTIMIZED */
         #streamingPlayer { 
-            position: fixed; top: 0; left: 0; width: 100dvw; height: 100dvh; 
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
             background: #000; z-index: 9999; display: none; flex-direction: column; 
         }
         #streamingPlayer.active { display: flex; }
-        
-        /* Sembunyikan header kustom saat iframe masuk ke mode fullscreen native browser */
-        #streamingPlayer:fullscreen .player-header,
-        #streamingPlayer:-webkit-full-screen .player-header {
-            display: none; 
+        #streamingPlayer:fullscreen, #streamingPlayer:-webkit-full-screen {
+            width: 100vw !important; height: 100vh !important;
         }
-        
         .player-header { 
             background: rgba(0,0,0,0.9); color: white; padding: 10px 12px; 
             display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; gap: 6px; 
             z-index: 10;
         }
         .player-title { font-size: 13px; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
-        .player-btn { width: 36px; height: 36px; border: none; border-radius: 50%; background: rgba(255,255,255,0.2); color: white; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .claim-btn { width: auto !important; padding: 0 12px !important; border-radius: 20px !important; font-size: 12px !important; background: #4CAF50 !important; font-weight: bold; gap: 4px; color: white !important; }
+        .player-btn { 
+            min-width: 36px; height: 36px; border: none; border-radius: 50%; 
+            background: rgba(255,255,255,0.2); color: white; font-size: 18px; 
+            cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+            padding: 0 8px;
+        }
+        .player-btn:active { background: rgba(255,255,255,0.4); }
+        .claim-btn { background: #4CAF50 !important; font-size: 12px !important; border-radius: 20px !important; padding: 0 12px !important; font-weight: bold; }
+        .rotate-btn { background: #ff9800 !important; }
+        .player-container { 
+            flex: 1; width: 100%; position: relative; overflow: hidden; background: #000; 
+            display: flex; align-items: center; justify-content: center;
+        }
+        .player-container iframe { 
+            width: 100%; height: 100%; border: none; 
+            position: absolute; top: 0; left: 0;
+        }
         
-        .player-container { flex: 1; width: 100%; position: relative; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; }
-        #playerIframe { width: 100%; height: 100%; border: none; }
+        /* HINT OVERLAY */
+        .rotate-hint {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9); color: white; padding: 20px 30px; border-radius: 16px;
+            text-align: center; z-index: 10000; display: none;
+            animation: fadeInOut 3s ease;
+        }
+        .rotate-hint.show { display: block; }
+        .rotate-hint-icon { font-size: 48px; margin-bottom: 10px; }
+        @keyframes fadeInOut { 0% { opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
         
         .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: white; padding: 10px 20px; border-radius: 50px; font-size: 13px; z-index: 9999; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; white-space: nowrap; pointer-events: none; max-width: 85%; overflow: hidden; text-overflow: ellipsis; }
         .toast.show { opacity: 1; visibility: visible; }
@@ -158,11 +174,8 @@
         .sticker-album { background: white; border-radius: 16px; padding: 16px; box-shadow: var(--shadow); margin-bottom: 16px; }
         .album-title { font-size: 16px; font-weight: bold; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
         .sticker-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-        .sticker-item { aspect-ratio: 1; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; background: #f0f0f0; position: relative; transition: all 0.3s; }
-        .sticker-item.unlocked { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); animation: stickerUnlock 0.5s ease; }
-        .sticker-item.locked { opacity: 0.4; }
-        .sticker-item.locked::after { content: '🔒'; position: absolute; font-size: 16px; }
-        @keyframes stickerUnlock { 0% { transform: scale(0) rotate(-180deg); } 50% { transform: scale(1.2); } 100% { transform: scale(1) rotate(0deg); } }
+        .sticker-item { aspect-ratio: 1; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; background: #f0f0f0; }
+        .sticker-item.unlocked { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
         
         .game-container { background: white; border-radius: 16px; padding: 20px; box-shadow: var(--shadow); text-align: center; }
         .game-score { font-size: 18px; font-weight: bold; color: var(--primary); margin-top: 12px; }
@@ -175,6 +188,13 @@
         .cert-stat { text-align: center; }
         .cert-stat-value { font-size: 36px; font-weight: bold; }
         .cert-stat-label { font-size: 12px; opacity: 0.9; }
+        
+        /* LANDSCAPE MODE - Force horizontal layout */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .player-header { padding: 6px 10px; }
+            .player-btn { width: 32px; height: 32px; font-size: 16px; }
+            .player-title { font-size: 12px; }
+        }
         
         @media (min-width: 500px) { .category-grid { grid-template-columns: repeat(3, 1fr); } .app-content { max-width: 600px; margin: 0 auto; } }
     </style>
@@ -190,71 +210,79 @@
         <div style="color: rgba(255,255,255,0.6); font-size: 11px; margin-top: 15px;">PIN: 1234</div>
     </div>
 
-    <div class="sync-status" id="syncStatus"><span id="syncStatusText">🔄 Syncing...</span></div>
     <div class="reward-badge" id="rewardBadge" style="display:none;">⭐ <span id="rewardPoints">0</span> Poin</div>
 
     <div id="mainApp">
         <div class="app-header">
             <div class="header-left">
-                <div class="header-logo"></div>
+                <div class="header-logo">📖</div>
                 <div style="min-width: 0; flex: 1;">
                     <div class="header-title">Smart Hafiz</div>
                     <div class="header-subtitle" id="headerStatus">Belajar Seru!</div>
                 </div>
             </div>
             <div class="header-right">
-                <button class="header-btn" onclick="manualSync()" title="Sync"></button>
+                <button class="header-btn" onclick="manualSync()" title="Sync">🔄</button>
                 <button class="header-btn" onclick="navigateTo('settings')" title="Settings">⚙️</button>
             </div>
         </div>
         <div class="app-content" id="appContent"></div>
         <div class="bottom-nav">
-            <button class="nav-item active" onclick="navigateTo('home')" id="navHome"><span class="nav-icon"></span><span class="nav-label">Beranda</span></button>
-            <button class="nav-item" onclick="navigateTo('category', {category: 'mengaji'})" id="navMengaji"><span class="nav-icon">📖</span><span class="nav-label">Mengaji</span></button>
+            <button class="nav-item active" onclick="navigateTo('home')" id="navHome"><span class="nav-icon">🏠</span><span class="nav-label">Beranda</span></button>
+            <button class="nav-item" onclick="navigateTo('category', {category: 'mengaji'})" id="navMengaji"><span class="nav-icon"></span><span class="nav-label">Mengaji</span></button>
             <button class="nav-item" onclick="navigateTo('category', {category: 'cerita'})" id="navCerita"><span class="nav-icon">📚</span><span class="nav-label">Cerita</span></button>
             <button class="nav-item" onclick="navigateTo('rewards')" id="navRewards"><span class="nav-icon">🎁</span><span class="nav-label">Hadiah</span></button>
-            <button class="nav-item" onclick="navigateTo('settings')" id="navSettings"><span class="nav-icon">️</span><span class="nav-label">Lainnya</span></button>
+            <button class="nav-item" onclick="navigateTo('settings')" id="navSettings"><span class="nav-icon">⚙️</span><span class="nav-label">Lainnya</span></button>
         </div>
     </div>
 
+    <!-- VIDEO PLAYER -->
     <div id="streamingPlayer">
-        <div class="player-header" id="playerHeader">
+        <div class="player-header">
             <button class="player-btn" id="prevVideoBtn" style="display:none;" title="Sebelumnya">⏮️</button>
             <div class="player-title" id="playerTitle">Judul Video</div>
             <button class="player-btn" id="nextVideoBtn" style="display:none;" title="Selanjutnya">⏭️</button>
             <button class="player-btn claim-btn" id="claimPointsBtn" style="display:none;" title="Klaim Poin">✅ Selesai</button>
-            <button class="player-btn" onclick="toggleFullscreen()" title="Layar Penuh Horizontal">️</button>
-            <button class="player-btn" onclick="closePlayer()" title="Tutup">✕</button>
+            <button class="player-btn rotate-btn" onclick="forceLandscape()" title="Putar Layar Horizontal">🔄</button>
+            <button class="player-btn" onclick="openVideoInNewTab()" title="Buka di Tab Baru (Layar Penuh)"></button>
+            <button class="player-btn" onclick="closePlayer()" title="Tutup"></button>
         </div>
         <div class="player-container">
-            <!-- Tambahkan atribut allow yang lengkap untuk fullscreen dan picture-in-picture -->
-            <iframe id="playerIframe" allowfullscreen allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock"></iframe>
+            <iframe id="playerIframe" allowfullscreen allow="autoplay; encrypted-media; fullscreen; picture-in-picture"></iframe>
         </div>
+    </div>
+
+    <!-- ROTATE HINT -->
+    <div class="rotate-hint" id="rotateHint">
+        <div class="rotate-hint-icon">➡️🔄</div>
+        <div>Putar HP Anda ke posisi horizontal</div>
+        <div style="font-size: 12px; opacity: 0.8; margin-top: 8px;">Atau tekan tombol 🔄 di atas</div>
     </div>
 
     <div class="toast" id="toast"></div>
 
     <script>
-        // ===== REWARD SYSTEM VARIABLES =====
+        // ===== REWARD SYSTEM =====
         let claimedRewards = JSON.parse(localStorage.getItem('claimedRewards') || '[]');
         let stickerCollection = JSON.parse(localStorage.getItem('stickerCollection') || '[]');
         let gameHighScore = parseInt(localStorage.getItem('gameHighScore') || '0');
-        let premiumUnlocked = localStorage.getItem('premiumUnlocked') === 'true';
         let watchedVideos = JSON.parse(localStorage.getItem('watchedVideos') || '[]');
         
         const REWARDS_LIST = [
-            { id: 'sticker_pack', name: '🎨 Paket Stiker Premium', points: 50, icon: '', description: 'Dapatkan 5 stiker eksklusif', type: 'sticker' },
-            { id: 'premium_story', name: '📚 Cerita Premium', points: 100, icon: '📚', description: 'Akses 10 cerita premium', type: 'content' },
-            { id: 'mini_game', name: ' Mini Game Edukasi', points: 200, icon: '🎮', description: 'Buka game tebak huruf hijaiyah', type: 'game' },
-            { id: 'certificate', name: '🏆 Sertifikat Hafiz', points: 500, icon: '', description: 'Sertifikat digital atas nama Anda', type: 'certificate' }
+            { id: 'sticker_pack', name: '🎨 Paket Stiker Premium', points: 50, icon: '🎨', description: 'Dapatkan 5 stiker eksklusif', type: 'sticker' },
+            { id: 'premium_story', name: '📚 Cerita Premium', points: 100, icon: '', description: 'Akses 10 cerita premium', type: 'content' },
+            { id: 'mini_game', name: '🎮 Mini Game Edukasi', points: 200, icon: '🎮', description: 'Buka game tebak huruf hijaiyah', type: 'game' },
+            { id: 'certificate', name: '🏆 Sertifikat Hafiz', points: 500, icon: '🏆', description: 'Sertifikat digital atas nama Anda', type: 'certificate' }
         ];
+
+        let currentDriveId = null;
+        let currentVideoTitle = '';
 
         function redeemReward(rewardId) {
             const reward = REWARDS_LIST.find(r => r.id === rewardId);
             if (!reward) return;
-            if (claimedRewards.includes(rewardId)) { showToast('⚠️ Anda sudah pernah menukar hadiah ini!'); return; }
-            if (hafizPoints < reward.points) { showToast('❌ Poin tidak cukup! Butuh ' + reward.points + ' poin'); return; }
-            
+            if (claimedRewards.includes(rewardId)) { showToast('⚠️ Sudah ditukar!'); return; }
+            if (hafizPoints < reward.points) { showToast('❌ Poin tidak cukup! Butuh ' + reward.points); return; }
             if (confirm(`Tukar ${reward.points} poin untuk "${reward.name}"?`)) {
                 hafizPoints -= reward.points;
                 localStorage.setItem('hafizPoints', hafizPoints.toString());
@@ -263,24 +291,23 @@
                 giveReward(reward);
                 updateRewardBadge();
                 renderRewards();
-                showToast(`🎉 Selamat! ${reward.name} berhasil ditukar!`);
+                showToast(` ${reward.name} berhasil ditukar!`);
             }
         }
 
         function giveReward(reward) {
             switch(reward.type) {
                 case 'sticker':
-                    const newStickers = ['', '🕌', '📖', '🤲', '🌙'];
-                    newStickers.forEach(sticker => { if (!stickerCollection.includes(sticker)) stickerCollection.push(sticker); });
+                    ['🌟', '🕌', '📖', '🤲', '🌙'].forEach(s => { if (!stickerCollection.includes(s)) stickerCollection.push(s); });
                     localStorage.setItem('stickerCollection', JSON.stringify(stickerCollection));
                     break;
-                case 'content': localStorage.setItem('premiumUnlocked', 'true'); premiumUnlocked = true; break;
+                case 'content': localStorage.setItem('premiumUnlocked', 'true'); break;
                 case 'game': localStorage.setItem('gameUnlocked', 'true'); break;
                 case 'certificate': localStorage.setItem('certificateGenerated', 'true'); break;
             }
         }
 
-        function playMiniGame() { showToast(' Game segera hadir! Skor tertinggi: ' + gameHighScore); }
+        function playMiniGame() { showToast('🎮 Game segera hadir! Skor: ' + gameHighScore); }
 
         function downloadCertificate() {
             const certText = `SERTIFIKAT HAFIZ\n\nDiberikan kepada:\n${userName}\n\nTelah menyelesaikan:\n${videosWatched} video\n${hafizPoints} poin\n\nSmart Hafiz 2024`;
@@ -291,12 +318,12 @@
             a.download = `Sertifikat_${userName.replace(/\s+/g, '_')}.txt`;
             a.click();
             window.URL.revokeObjectURL(url);
-            showToast('📥 Sertifikat berhasil didownload!');
+            showToast('📥 Sertifikat didownload!');
         }
 
         function claimVideoPoints(driveId, title) {
             if (watchedVideos.includes(driveId)) {
-                showToast('️ Poin untuk video ini sudah pernah diklaim!');
+                showToast('ℹ️ Poin video ini sudah diklaim!');
                 closePlayer();
                 return;
             }
@@ -305,15 +332,8 @@
             videosWatched++;
             localStorage.setItem('videosWatched', videosWatched.toString());
             addPoints(10);
-            showToast(` "${title}" selesai ditonton! +10 Poin`);
+            showToast(` "${title}" selesai! +10 Poin`);
             closePlayer();
-        }
-
-        // ===== SUPABASE CONFIGURATION =====
-        const SUPABASE_CONFIG = { url: 'https://your-project.supabase.co', anonKey: 'your-anon-key', enabled: false };
-        let supabaseClient;
-        if (SUPABASE_CONFIG.enabled && typeof window.supabase !== 'undefined') {
-            supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
         }
 
         // ===== CONFIGURATION =====
@@ -372,8 +392,8 @@
         function getEmptyContent() {
             return {
                 mengaji: { title: 'MENGAJI YUK', icon: '📖', color: '#1a7a4c', totalVideos: 0, folders: {} },
-                cerita: { title: 'CERITA', icon: '', color: '#7b1fa2', totalVideos: 0, folders: {} },
-                lagu: { title: 'MENYANYI YUK', icon: '🎵', color: '#e65100', totalVideos: 0, folders: {} },
+                cerita: { title: 'CERITA', icon: '📚', color: '#7b1fa2', totalVideos: 0, folders: {} },
+                lagu: { title: 'MENYANYI YUK', icon: '', color: '#e65100', totalVideos: 0, folders: {} },
                 film: { title: 'FILM', icon: '🎬', color: '#c62828', totalVideos: 0, folders: {} },
                 akhlaq: { title: 'AKHLAQ TERPUJI', icon: '🌸', color: '#ad1457', totalVideos: 0, folders: {} },
                 pengetahuan: { title: 'PENGETAHUAN', icon: '🧠', color: '#1565c0', totalVideos: 0, folders: {} }
@@ -448,7 +468,7 @@
                 document.getElementById('lockScreen').classList.add('hidden');
                 document.getElementById('mainApp').classList.add('active');
                 renderHome();
-                showToast(` Selamat datang, ${userName}!`);
+                showToast(`🌟 Selamat datang, ${userName}!`);
             } else { showToast('❌ PIN salah'); document.getElementById('lockPassword').value = ''; }
         }
 
@@ -519,9 +539,9 @@
                     </div>
                 </div>
                 <div class="progress-card">
-                    <div class="progress-title">📊 Progress Belajar Hari Ini</div>
+                    <div class="progress-title">📊 Progress Belajar</div>
                     <div class="progress-bar"><div class="progress-fill" style="width: ${progressPercent}%"></div></div>
-                    <div class="progress-text">${videosWatched} dari ${totalVideos} video ditonton sampai selesai (${Math.round(progressPercent)}%)</div>
+                    <div class="progress-text">${videosWatched} dari ${totalVideos} video (${Math.round(progressPercent)}%)</div>
                 </div>
                 <div class="feature-grid">
                     <div class="feature-card" onclick="navigateTo('category', {category: 'mengaji'})"><div class="feature-icon" style="background:#1a7a4c;">📖</div><div class="feature-name">Mengaji</div></div>
@@ -534,9 +554,9 @@
                     <div class="category-grid">${categoryHTML || '<div class="empty-state"><div class="empty-icon">📦</div><p>Belum ada data. Klik 🔄 untuk sync.</p></div>'}</div>
                 </div>
                 <div class="debug-panel">
-                    <strong> Debug:</strong> ${totalVideos} video • ${totalFolders} folder<br>
+                    <strong>📊 Debug:</strong> ${totalVideos} video • ${totalFolders} folder<br>
                     <button onclick="manualSync()" style="background:#2196F3; color:white; border:none; padding:4px 10px; border-radius:4px; margin-top:6px; font-size:10px; cursor:pointer;">🔄 Sync</button>
-                    <button onclick="clearAllCache()" style="background:#f44336; color:white; border:none; padding:4px 10px; border-radius:4px; margin-top:6px; font-size:10px; cursor:pointer;">️ Clear</button>
+                    <button onclick="clearAllCache()" style="background:#f44336; color:white; border:none; padding:4px 10px; border-radius:4px; margin-top:6px; font-size:10px; cursor:pointer;">🗑️ Clear</button>
                 </div>`;
         }
 
@@ -551,11 +571,11 @@
             let foldersHTML = folderNames.length > 0 ? folderNames.map((folderName) => {
                 const folder = folders[folderName];
                 return `<div class="folder-item" onclick="navigateTo('folder', {category: '${categoryKey}', folder: '${folderName.replace(/'/g, "\\'")}'})">
-                    <div class="folder-icon">📁</div>
+                    <div class="folder-icon"></div>
                     <div class="folder-text"><div class="folder-name">${folderName}</div><div class="folder-count">${folder.items.length} video</div></div>
                     <span style="font-size: 16px; color: var(--text-light);">›</span>
                 </div>`;
-            }).join('') : `<div class="empty-state"><div class="empty-icon"></div><p>Belum ada folder. Klik 🔄 untuk sync.</p></div>`;
+            }).join('') : `<div class="empty-state"><div class="empty-icon">📭</div><p>Belum ada folder.</p></div>`;
 
             document.getElementById('appContent').innerHTML = `
                 <button class="back-btn" onclick="goBack()">← Kembali</button>
@@ -585,7 +605,7 @@
             document.getElementById('appContent').innerHTML = `
                 <button class="back-btn" onclick="navigateTo('category', {category: '${categoryKey}'})">← Kembali</button>
                 <div class="breadcrumb"><span onclick="navigateTo('home')">Beranda</span> / <span onclick="navigateTo('category', {category: '${categoryKey}'})">${category.title}</span> / ${folderName}</div>
-                <div class="page-title"> ${folderName}</div>
+                <div class="page-title">📁 ${folderName}</div>
                 <div style="font-size: 12px; color: var(--text-light); margin-bottom: 12px; padding: 0 4px;">📊 ${items.length} video</div>
                 <div class="video-list">${videosHTML || '<div class="empty-state"><p>Belum ada video</p></div>'}</div>`;
         }
@@ -601,7 +621,6 @@
             const safeName = item.name.replace(/'/g, "\\'");
             const safeFolder = folderName.replace(/'/g, "\\'");
 
-            // Tambahkan tombol fallback "Buka di Tab Baru"
             document.getElementById('appContent').innerHTML = `
                 <button class="back-btn" onclick="navigateTo('folder', {category: '${categoryKey}', folder: '${safeFolder}'})">← Kembali</button>
                 <div class="breadcrumb"><span onclick="navigateTo('home')">Beranda</span> / <span onclick="navigateTo('category', {category: '${categoryKey}'})">${category.title}</span> / <span onclick="navigateTo('folder', {category: '${categoryKey}', folder: '${safeFolder}'})">${folderName}</span></div>
@@ -611,27 +630,20 @@
                     <div class="video-folder-tag">📁 ${item.folder || folderName}</div>
                     <p class="video-detail-desc">${item.desc || 'Video edukasi Islami'}</p>
                     ${item.size ? `<div class="video-size-badge">📦 ${item.size}</div>` : ''}
-                    
-                    <button class="btn-action btn-primary" onclick="streamVideo('${driveId}', '${safeName}', '${categoryKey}', '${safeFolder}', '${item.id}')">▶️ Putar di Aplikasi</button>
-                    
-                    <!-- TOMBOL FALLBACK UNTUK LAYAR PENUH MUTLAK -->
-                    <button class="btn-action btn-warning" onclick="openVideoInNewTab('${driveId}')">🌐 Buka di Tab Baru (Layar Penuh)</button>
-                    
+                    <button class="btn-action btn-primary" onclick="streamVideo('${driveId}', '${safeName}', '${categoryKey}', '${safeFolder}', '${item.id}')">▶️ Tonton Video</button>
+                    <button class="btn-action btn-warning" onclick="openVideoInNewTabDirect('${driveId}', '${safeName}')">🔗 Buka Layar Penuh (Tab Baru)</button>
                     <button class="btn-action btn-secondary" onclick="downloadVideo('${driveId}', '${safeName}')">⬇️ Download</button>
                     <button class="btn-action btn-download ${isSaved ? 'downloaded' : ''}" onclick="${isSaved ? `deleteVideo('${driveId}', '${safeName}', '${categoryKey}', '${safeFolder}')` : `addToDownloadedList('${driveId}', '${safeName}')`}">${isSaved ? '✓ Tersimpan (Hapus)' : '📥 Simpan ke Daftar'}</button>
                 </div>`;
         }
 
-        // FUNGSI BARU: Buka video di tab baru (Jaminan 100% bisa fullscreen & horizontal di HP)
-        function openVideoInNewTab(driveId) {
-            window.open(`https://drive.google.com/file/d/${driveId}/preview`, '_blank');
-            showToast('🌐 Video dibuka di tab baru. Silakan putar & fullscreen!');
-        }
-
-        // ===== UPDATE: STREAM VIDEO DENGAN FULLSCREEN IFROME LANGSUNG =====
+        // ===== STREAM VIDEO DENGAN LANDSCAPE FORCE =====
         function streamVideo(driveId, title, categoryKey, folderName, itemId) {
+            currentDriveId = driveId;
+            currentVideoTitle = title;
+            
             document.getElementById('playerTitle').textContent = title;
-            document.getElementById('playerIframe').src = `https://drive.google.com/file/d/${driveId}/preview?autoplay=1`;
+            document.getElementById('playerIframe').src = `https://drive.google.com/file/d/${driveId}/preview`;
             
             const category = CONTENT[categoryKey];
             if (category && category.folders && category.folders[folderName]) {
@@ -660,16 +672,95 @@
             
             document.getElementById('streamingPlayer').classList.add('active');
             
-            // PANGGIL FULLSCREEN SECARA LANGSUNG (TANPA SETTIMEOUT) AGAR DIIZINKAN BROWSER
-            toggleFullscreen();
+            // Tampilkan hint putar layar
+            showRotateHint();
             
-            // Timer untuk tombol klaim poin
-            const claimBtn = document.getElementById('claimPointsBtn');
-            if (claimBtn) {
-                setTimeout(() => {
-                    claimBtn.style.display = 'flex';
-                    claimBtn.onclick = () => claimVideoPoints(driveId, title);
-                }, 15000); // 15 detik delay
+            // Tunggu user interaction, lalu coba fullscreen
+            setTimeout(() => {
+                const claimBtn = document.getElementById('claimPointsBtn');
+                if (claimBtn) {
+                    setTimeout(() => {
+                        claimBtn.style.display = 'flex';
+                        claimBtn.onclick = () => claimVideoPoints(driveId, title);
+                    }, 15000);
+                }
+            }, 500);
+        }
+
+        // ===== FUNGSI PENTING: PAKSA LANDSCAPE =====
+        function forceLandscape() {
+            const player = document.getElementById('streamingPlayer');
+            
+            // Metode 1: Screen Orientation API (paling efektif di Android Chrome)
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').then(() => {
+                    showToast(' Layar diputar ke horizontal!');
+                }).catch(err => {
+                    console.log('Orientation lock failed:', err);
+                    // Fallback ke fullscreen
+                    enterFullscreen(player);
+                });
+            } else {
+                // Fallback: Fullscreen API
+                enterFullscreen(player);
+            }
+        }
+
+        function enterFullscreen(element) {
+            if (element.requestFullscreen) {
+                element.requestFullscreen().then(() => {
+                    showToast('🖥️ Mode layar penuh!');
+                }).catch(err => {
+                    console.log('Fullscreen failed:', err);
+                    showToast('⚠️ Putar HP Anda secara manual');
+                });
+            } else if (element.webkitRequestFullscreen) {
+                element.webkitRequestFullscreen();
+            } else if (element.msRequestFullscreen) {
+                element.msRequestFullscreen();
+            } else {
+                showToast('⚠️ Putar HP Anda ke horizontal');
+            }
+        }
+
+        function showRotateHint() {
+            const hint = document.getElementById('rotateHint');
+            hint.classList.add('show');
+            setTimeout(() => { hint.classList.remove('show'); }, 3000);
+        }
+
+        // ===== BUKA VIDEO DI TAB BARU (FALLBACK TERBAIK) =====
+        function openVideoInNewTab() {
+            if (currentDriveId) {
+                openVideoInNewTabDirect(currentDriveId, currentVideoTitle);
+            } else {
+                showToast('⚠️ Tidak ada video yang aktif');
+            }
+        }
+
+        function openVideoInNewTabDirect(driveId, title) {
+            // Gunakan URL embed Google Drive yang optimal untuk fullscreen
+            const embedUrl = `https://drive.google.com/file/d/${driveId}/preview`;
+            
+            // Buka di tab baru dengan fitur fullscreen
+            const newWindow = window.open(embedUrl, '_blank', 'fullscreen=yes,menubar=no,toolbar=no,location=no,status=no');
+            
+            if (newWindow) {
+                showToast('🔗 Video dibuka di tab baru - Putar HP ke horizontal!');
+                // Tandai video sudah ditonton (karena dibuka di tab baru, anggap selesai)
+                if (!watchedVideos.includes(driveId)) {
+                    setTimeout(() => {
+                        if (confirm(`Apakah Anda sudah selesai menonton "${title}"?`)) {
+                            watchedVideos.push(driveId);
+                            localStorage.setItem('watchedVideos', JSON.stringify(watchedVideos));
+                            videosWatched++;
+                            localStorage.setItem('videosWatched', videosWatched.toString());
+                            addPoints(10);
+                        }
+                    }, 30000); // Tanya setelah 30 detik
+                }
+            } else {
+                showToast('⚠️ Pop-up diblokir! Izinkan pop-up di browser');
             }
         }
 
@@ -680,50 +771,21 @@
             document.getElementById('nextVideoBtn').style.display = 'none';
             document.getElementById('claimPointsBtn').style.display = 'none';
             
-            // Keluar dari fullscreen jika masih aktif
-            if (document.fullscreenElement) {
-                if (document.exitFullscreen) document.exitFullscreen();
-                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-            }
-            // Reset orientasi layar jika dikunci
+            // Unlock orientation
             if (screen.orientation && screen.orientation.unlock) {
                 screen.orientation.unlock();
             }
-        }
-
-        // ===== FUNGSI FULLSCREEN YANG DIPERBAIKI: MENARGETKAN IFRAME & MENGUNCI ORIENTASI =====
-        function toggleFullscreen() {
-            const iframe = document.getElementById('playerIframe');
             
-            if (!document.fullscreenElement) {
-                // 1. Minta Fullscreen pada IFRAME (bukan div parent) agar browser menganggap ini video
-                if (iframe.requestFullscreen) {
-                    iframe.requestFullscreen().catch(err => console.log('Fullscreen error:', err));
-                } else if (iframe.webkitRequestFullscreen) { /* Safari */
-                    iframe.webkitRequestFullscreen();
-                } else if (iframe.msRequestFullscreen) { /* IE11 */
-                    iframe.msRequestFullscreen();
-                }
-                
-                // 2. Coba paksa orientasi Landscape (Hanya bekerja di Android Chrome)
-                if (screen.orientation && screen.orientation.lock) {
-                    screen.orientation.lock('landscape').catch(e => console.log('Orientation lock failed:', e));
-                }
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) { /* Safari */
-                    document.webkitExitFullscreen();
-                }
-                
-                // 3. Buka kunci orientasi saat keluar fullscreen
-                if (screen.orientation && screen.orientation.unlock) {
-                    screen.orientation.unlock();
-                }
+            if (document.fullscreenElement) {
+                if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
             }
         }
 
-        function downloadVideo(driveId, name) { window.open(`https://drive.google.com/uc?export=download&id=${driveId}`, '_blank'); addToDownloadedList(driveId, name); }
+        function downloadVideo(driveId, name) { 
+            window.open(`https://drive.google.com/uc?export=download&id=${driveId}`, '_blank'); 
+            addToDownloadedList(driveId, name); 
+        }
 
         function addToDownloadedList(driveId, name) {
             if (!downloadedVideos.includes(driveId)) {
@@ -738,7 +800,7 @@
             if (confirm(`Hapus "${name}"?`)) {
                 downloadedVideos = downloadedVideos.filter(id => id !== driveId);
                 localStorage.setItem('downloadedVideos', JSON.stringify(downloadedVideos));
-                showToast('️ Dihapus');
+                showToast('🗑️ Dihapus');
                 const item = CONTENT[categoryKey]?.folders[folderName]?.items.find(i => i.driveId === driveId);
                 if (item) showVideoDetail(categoryKey, folderName, item.id);
             }
@@ -764,17 +826,17 @@
             
             let stickerSection = '';
             if (claimedRewards.includes('sticker_pack')) {
-                stickerSection = `<div class="sticker-album"><div class="album-title"> Koleksi Stiker Anda (${stickerCollection.length})</div><div class="sticker-grid">${stickerCollection.map(s => `<div class="sticker-item unlocked">${s}</div>`).join('')}</div></div>`;
+                stickerSection = `<div class="sticker-album"><div class="album-title">🎨 Koleksi Stiker (${stickerCollection.length})</div><div class="sticker-grid">${stickerCollection.map(s => `<div class="sticker-item unlocked">${s}</div>`).join('')}</div></div>`;
             }
             
             let gameSection = '';
             if (claimedRewards.includes('mini_game')) {
-                gameSection = `<div class="game-container"><div class="game-score">Skor Tertinggi: ${gameHighScore}</div><button class="btn-action btn-primary" onclick="playMiniGame()">Mainkan Sekarang!</button></div>`;
+                gameSection = `<div class="game-container"><div class="game-score">Skor Tertinggi: ${gameHighScore}</div><button class="btn-action btn-primary" onclick="playMiniGame()">Mainkan!</button></div>`;
             }
             
             let certSection = '';
             if (claimedRewards.includes('certificate')) {
-                certSection = `<div class="certificate-container"><div class="certificate-title">SERTIFIKAT HAFIZ</div><div class="certificate-subtitle">Diberikan kepada</div><div class="certificate-name">${userName}</div><div class="certificate-stats"><div class="cert-stat"><div class="cert-stat-value">${videosWatched}</div><div class="cert-stat-label">Video Selesai</div></div><div class="cert-stat"><div class="cert-stat-value">${hafizPoints}</div><div class="cert-stat-label">Poin</div></div></div><button class="btn-action btn-secondary" onclick="downloadCertificate()">📥 Download Sertifikat</button></div>`;
+                certSection = `<div class="certificate-container"><div class="certificate-title">SERTIFIKAT HAFIZ</div><div class="certificate-subtitle">Diberikan kepada</div><div class="certificate-name">${userName}</div><div class="certificate-stats"><div class="cert-stat"><div class="cert-stat-value">${videosWatched}</div><div class="cert-stat-label">Video</div></div><div class="cert-stat"><div class="cert-stat-value">${hafizPoints}</div><div class="cert-stat-label">Poin</div></div></div><button class="btn-action btn-secondary" onclick="downloadCertificate()">📥 Download</button></div>`;
             }
             
             document.getElementById('appContent').innerHTML = `
@@ -784,53 +846,66 @@
                     <div class="hero-greeting">Poin Kamu</div>
                     <div class="hero-name" style="font-size: 36px;">⭐ ${hafizPoints}</div>
                     <div class="hero-stats">
-                        <div class="hero-stat"><div class="hero-stat-value">🎬 ${videosWatched}</div><div>Video Selesai</div></div>
+                        <div class="hero-stat"><div class="hero-stat-value">🎬 ${videosWatched}</div><div>Video</div></div>
                         <div class="hero-stat"><div class="hero-stat-value">🏆 ${claimedRewards.length}</div><div>Hadiah</div></div>
                     </div>
                 </div>
                 <div class="settings-group">
                     <div style="padding: 14px 16px; background: #f0f0f0; font-size: 13px; font-weight: 600;">🎯 Cara Dapat Poin:</div>
-                    <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e8f5e9;">🎬</div><div class="settings-item-text"><h4>Tonton Video Sampai Selesai</h4><p>+10 poin (Klik tombol "Selesai")</p></div></div></div>
-                    <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd;">💾</div><div class="settings-item-text"><h4>Download Video</h4><p>+5 poin setiap download</p></div></div></div>
-                    <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0;">📅</div><div class="settings-item-text"><h4>Juz Harian</h4><p>+5 poin setiap cek juz</p></div></div></div>
+                    <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e8f5e9;"></div><div class="settings-item-text"><h4>Tonton Video</h4><p>+10 poin (klik "Selesai")</p></div></div></div>
+                    <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd;">💾</div><div class="settings-item-text"><h4>Download Video</h4><p>+5 poin</p></div></div></div>
+                    <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0;"></div><div class="settings-item-text"><h4>Juz Harian</h4><p>+5 poin</p></div></div></div>
                 </div>
                 <div class="settings-group">
                     <div style="padding: 14px 16px; background: #f0f0f0; font-size: 13px; font-weight: 600;">🎁 Tukar Poin:</div>
                     ${rewardsHTML}
                 </div>
-                ${stickerSection}
-                ${gameSection}
-                ${certSection}`;
+                ${stickerSection}${gameSection}${certSection}`;
         }
 
         function renderSettings() {
             document.getElementById('appContent').innerHTML = `
                 <button class="back-btn" onclick="goBack()">← Kembali</button>
-                <div class="page-title">️ Pengaturan</div>
+                <div class="page-title">⚙️ Pengaturan</div>
                 <div class="settings-group">
-                    <div class="settings-item" onclick="promptUserName()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd;">👤</div><div class="settings-item-text"><h4>Nama Anak</h4><p>${userName}</p></div></div><span>›</span></div>
-                    <div class="settings-item" onclick="manualSync()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0; color:#e65100;"></div><div class="settings-item-text"><h4>Manual Sync</h4><p>Ambil data dari Drive</p></div></div><span>›</span></div>
-                    <div class="settings-item" onclick="clearAllCache()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#ffebee; color:#c62828;">🗑️</div><div class="settings-item-text"><h4>Clear Cache</h4><p>Hapus data lokal</p></div></div><span>›</span></div>
-                    <div class="settings-item" onclick="resetProgress()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd; color:#1565c0;"></div><div class="settings-item-text"><h4>Reset Progress</h4><p>Reset poin & video</p></div></div><span>›</span></div>
+                    <div class="settings-item" onclick="promptUserName()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd;"></div><div class="settings-item-text"><h4>Nama Anak</h4><p>${userName}</p></div></div><span>›</span></div>
+                    <div class="settings-item" onclick="manualSync()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0;">🔄</div><div class="settings-item-text"><h4>Manual Sync</h4><p>Ambil data dari Drive</p></div></div><span>›</span></div>
+                    <div class="settings-item" onclick="clearAllCache()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#ffebee;">🗑️</div><div class="settings-item-text"><h4>Clear Cache</h4><p>Hapus data lokal</p></div></div><span>›</span></div>
+                    <div class="settings-item" onclick="resetProgress()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd;">🔄</div><div class="settings-item-text"><h4>Reset Progress</h4><p>Reset poin & video</p></div></div><span>›</span></div>
                 </div>
-                <div style="text-align:center; padding:14px; color:var(--text-light); font-size:10px;">Smart Hafiz v13.0<br>Belajar Seru Setiap Hari!<br>© 2024</div>`;
+                <div style="text-align:center; padding:14px; color:var(--text-light); font-size:10px;">Smart Hafiz v13.0<br>© 2024</div>`;
         }
 
-        function promptUserName() { const newName = prompt('Masukkan nama anak:', userName); if (newName && newName.trim()) { userName = newName.trim(); localStorage.setItem('userName', userName); showToast(`✅ Nama diubah menjadi ${userName}`); renderSettings(); } }
+        function promptUserName() { 
+            const newName = prompt('Masukkan nama anak:', userName); 
+            if (newName && newName.trim()) { 
+                userName = newName.trim(); 
+                localStorage.setItem('userName', userName); 
+                showToast(`✅ Nama: ${userName}`); 
+                renderSettings(); 
+            } 
+        }
 
         function resetProgress() {
-            if (confirm('Reset semua progress? Poin akan kembali ke 0.')) {
+            if (confirm('Reset semua progress?')) {
                 hafizPoints = 0; videosWatched = 0; watchedVideos = []; dailyJuz = 1;
-                localStorage.setItem('hafizPoints', '0'); localStorage.setItem('videosWatched', '0'); 
-                localStorage.setItem('watchedVideos', '[]'); localStorage.setItem('dailyJuz', '1');
-                updateRewardBadge(); showToast('🔄 Progress direset'); renderHome();
+                localStorage.setItem('hafizPoints', '0'); 
+                localStorage.setItem('videosWatched', '0'); 
+                localStorage.setItem('watchedVideos', '[]'); 
+                localStorage.setItem('dailyJuz', '1');
+                updateRewardBadge(); 
+                showToast(' Progress direset'); 
+                renderHome();
             }
         }
 
         function clearAllCache() {
             if (confirm('Hapus SEMUA cache?')) {
-                localStorage.removeItem('smartHafizContent'); localStorage.removeItem('smartHafizContentTime');
-                CONTENT = getEmptyContent(); showToast('🗑️ Cache dihapus'); renderHome();
+                localStorage.removeItem('smartHafizContent'); 
+                localStorage.removeItem('smartHafizContentTime');
+                CONTENT = getEmptyContent(); 
+                showToast('🗑️ Cache dihapus'); 
+                renderHome();
             }
         }
 
