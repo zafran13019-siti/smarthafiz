@@ -116,13 +116,20 @@
         .video-size-badge, .video-folder-tag { background: #f0f0f0; padding: 6px 14px; border-radius: 20px; display: inline-block; margin-bottom: 10px; font-size: 11px; }
         .video-folder-tag { background: #fff3e0; color: #e65100; }
         
-        #streamingPlayer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5000; display: none; flex-direction: column; }
+        /* VIDEO PLAYER - OPTIMIZED FOR LANDSCAPE/FULLSCREEN */
+        #streamingPlayer { 
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+            background: #000; z-index: 9999; display: none; flex-direction: column; 
+        }
         #streamingPlayer.active { display: flex; }
-        .player-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; gap: 6px; }
+        .player-header { 
+            background: rgba(0,0,0,0.8); color: white; padding: 10px 12px; 
+            display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; gap: 6px; 
+        }
         .player-title { font-size: 13px; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
-        .player-btn { width: 34px; height: 34px; border: none; border-radius: 50%; background: rgba(255,255,255,0.2); color: white; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .claim-btn { width: auto !important; padding: 0 12px !important; border-radius: 20px !important; font-size: 12px !important; background: #4CAF50 !important; font-weight: bold; gap: 4px; }
-        .player-container { flex: 1; width: 100%; position: relative; overflow: hidden; background: #000; }
+        .player-btn { width: 36px; height: 36px; border: none; border-radius: 50%; background: rgba(255,255,255,0.2); color: white; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .claim-btn { width: auto !important; padding: 0 12px !important; border-radius: 20px !important; font-size: 12px !important; background: #4CAF50 !important; font-weight: bold; gap: 4px; color: white !important; }
+        .player-container { flex: 1; width: 100%; position: relative; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; }
         .player-container iframe { width: 100%; height: 100%; border: none; }
         
         .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: white; padding: 10px 20px; border-radius: 50px; font-size: 13px; z-index: 9999; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; white-space: nowrap; pointer-events: none; max-width: 85%; overflow: hidden; text-overflow: ellipsis; }
@@ -208,13 +215,12 @@
             <button class="player-btn" id="prevVideoBtn" style="display:none;" title="Sebelumnya">⏮️</button>
             <div class="player-title" id="playerTitle">Judul Video</div>
             <button class="player-btn" id="nextVideoBtn" style="display:none;" title="Selanjutnya">⏭️</button>
-            <!-- TOMBOL KLAIM POIN BARU -->
             <button class="player-btn claim-btn" id="claimPointsBtn" style="display:none;" title="Klaim Poin">✅ Selesai</button>
-            <button class="player-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
+            <button class="player-btn" onclick="toggleFullscreen()" title="Layar Penuh Horizontal">🖥️</button>
             <button class="player-btn" onclick="closePlayer()" title="Tutup">✕</button>
         </div>
         <div class="player-container">
-            <iframe id="playerIframe" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+            <iframe id="playerIframe" allowfullscreen allow="autoplay; encrypted-media; fullscreen"></iframe>
         </div>
     </div>
 
@@ -226,7 +232,6 @@
         let stickerCollection = JSON.parse(localStorage.getItem('stickerCollection') || '[]');
         let gameHighScore = parseInt(localStorage.getItem('gameHighScore') || '0');
         let premiumUnlocked = localStorage.getItem('premiumUnlocked') === 'true';
-        // ARRAY BARU UNTUK MELACAK VIDEO YANG SUDAH SELESAI DITONTON
         let watchedVideos = JSON.parse(localStorage.getItem('watchedVideos') || '[]');
         
         const REWARDS_LIST = [
@@ -281,24 +286,17 @@
             showToast('📥 Sertifikat berhasil didownload!');
         }
 
-        // ===== FUNGSI BARU: KLAIM POIN SETELAH SELESAI =====
         function claimVideoPoints(driveId, title) {
-            // Cek apakah video ini sudah pernah diklaim poinnya sebelumnya
             if (watchedVideos.includes(driveId)) {
                 showToast('ℹ️ Poin untuk video ini sudah pernah diklaim!');
                 closePlayer();
                 return;
             }
-            
-            // Tandai video sudah selesai ditonton
             watchedVideos.push(driveId);
             localStorage.setItem('watchedVideos', JSON.stringify(watchedVideos));
-            
-            // Tambah poin dan counter video
             videosWatched++;
             localStorage.setItem('videosWatched', videosWatched.toString());
             addPoints(10);
-            
             showToast(`🎉 "${title}" selesai ditonton! +10 Poin`);
             closePlayer();
         }
@@ -610,7 +608,7 @@
                 </div>`;
         }
 
-        // ===== UPDATE: STREAM VIDEO DENGAN SISTEM KLAIM =====
+        // ===== UPDATE: STREAM VIDEO DENGAN FULLSCREEN OPTIMIZED =====
         function streamVideo(driveId, title, categoryKey, folderName, itemId) {
             document.getElementById('playerTitle').textContent = title;
             document.getElementById('playerIframe').src = `https://drive.google.com/file/d/${driveId}/preview`;
@@ -624,7 +622,6 @@
                 const nextBtn = document.getElementById('nextVideoBtn');
                 const claimBtn = document.getElementById('claimPointsBtn');
                 
-                // Reset tombol klaim
                 claimBtn.style.display = 'none';
                 claimBtn.onclick = null;
 
@@ -644,11 +641,9 @@
             document.getElementById('streamingPlayer').classList.add('active');
             
             setTimeout(() => {
-                const iframe = document.getElementById('playerIframe');
-                if (iframe.requestFullscreen) iframe.requestFullscreen().catch(() => {});
-                else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen();
+                // Paksa mode layar penuh horizontal agar video terlihat jelas dan lebar
+                toggleFullscreen();
                 
-                // Tampilkan tombol klaim setelah 15 detik (mencegah klik instan tanpa menonton)
                 const claimBtn = document.getElementById('claimPointsBtn');
                 if (claimBtn) {
                     setTimeout(() => {
@@ -656,7 +651,7 @@
                         claimBtn.onclick = () => claimVideoPoints(driveId, title);
                     }, 15000); // 15 detik delay
                 }
-            }, 300);
+            }, 500);
         }
 
         function closePlayer() {
@@ -665,12 +660,33 @@
             document.getElementById('prevVideoBtn').style.display = 'none';
             document.getElementById('nextVideoBtn').style.display = 'none';
             document.getElementById('claimPointsBtn').style.display = 'none';
-            if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+            if (document.fullscreenElement) {
+                if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            }
         }
 
+        // ===== FUNGSI FULLSCREEN YANG DIPERBAIKI UNTUK LANDSCAPE =====
         function toggleFullscreen() {
-            if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-            else { const iframe = document.getElementById('playerIframe'); if (iframe.requestFullscreen) iframe.requestFullscreen(); else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen(); }
+            const player = document.getElementById('streamingPlayer');
+            if (!document.fullscreenElement) {
+                // Minta fullscreen pada container player (lebih efektif untuk landscape di HP)
+                if (player.requestFullscreen) {
+                    player.requestFullscreen().catch(err => console.log('Fullscreen error:', err));
+                } else if (player.webkitRequestFullscreen) { /* Safari */
+                    player.webkitRequestFullscreen();
+                } else if (player.msRequestFullscreen) { /* IE11 */
+                    player.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) { /* Safari */
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { /* IE11 */
+                    document.msExitFullscreen();
+                }
+            }
         }
 
         function downloadVideo(driveId, name) { window.open(`https://drive.google.com/uc?export=download&id=${driveId}`, '_blank'); addToDownloadedList(driveId, name); }
