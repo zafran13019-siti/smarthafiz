@@ -114,13 +114,14 @@
         .video-size-badge, .video-folder-tag { background: #f0f0f0; padding: 6px 14px; border-radius: 20px; display: inline-block; margin-bottom: 10px; font-size: 11px; }
         .video-folder-tag { background: #fff3e0; color: #e65100; }
         
-        /* VIDEO PLAYER - DENGAN LOADING SPINNER */
+        /* VIDEO PLAYER - MINIMALIST CONTROLS */
         #streamingPlayer { 
             position: fixed; top: 0; left: 0; width: 100dvw; height: 100dvh; 
             background: #000; z-index: 9999; display: none; flex-direction: column; 
         }
         #streamingPlayer.active { display: flex; }
         
+        /* Sembunyikan header saat fullscreen */
         #streamingPlayer:fullscreen .player-header,
         #streamingPlayer:-webkit-full-screen .player-header {
             display: none; 
@@ -141,7 +142,52 @@
         }
         #playerIframe { width: 100%; height: 100%; border: none; }
         
-        /* LOADING SPINNER SAAT VIDEO DIMUAT */
+        /* CUSTOM MINIMALIST OVERLAY CONTROLS */
+        .video-overlay-controls {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 15;
+            pointer-events: none; /* Biarkan klik tembus ke iframe */
+            transition: opacity 0.3s ease;
+        }
+        .video-overlay-controls.hidden {
+            opacity: 0;
+        }
+        
+        /* Tombol Play/Pause Besar di Tengah */
+        .overlay-play-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            font-size: 40px;
+            cursor: pointer;
+            pointer-events: auto; /* Tombol ini bisa diklik */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+        .overlay-play-btn.show {
+            opacity: 1;
+            animation: playPulse 0.5s ease;
+        }
+        .overlay-play-btn:active {
+            transform: scale(0.9);
+        }
+        @keyframes playPulse {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Loading Spinner */
         .video-loading-overlay {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -179,26 +225,6 @@
         .video-loading-subtext {
             color: rgba(255,255,255,0.7);
             font-size: 12px;
-        }
-        .video-loading-progress {
-            width: 200px;
-            height: 4px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 2px;
-            margin-top: 15px;
-            overflow: hidden;
-        }
-        .video-loading-progress-bar {
-            height: 100%;
-            background: #4CAF50;
-            border-radius: 2px;
-            width: 0%;
-            animation: loadingProgress 3s ease-in-out infinite;
-        }
-        @keyframes loadingProgress {
-            0% { width: 0%; }
-            50% { width: 70%; }
-            100% { width: 100%; }
         }
         
         .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: white; padding: 10px 20px; border-radius: 50px; font-size: 13px; z-index: 9999; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; white-space: nowrap; pointer-events: none; max-width: 85%; overflow: hidden; text-overflow: ellipsis; }
@@ -244,7 +270,7 @@
 <body>
 
     <div id="lockScreen">
-        <div class="lock-logo">📖</div>
+        <div class="lock-logo"></div>
         <div class="lock-title">Smart Hafiz</div>
         <div class="lock-subtitle">Belajar Seru Setiap Hari! 🌟</div>
         <input type="password" class="lock-input" id="lockPassword" placeholder="PIN (1234)" maxlength="6" inputmode="numeric">
@@ -266,14 +292,14 @@
             </div>
             <div class="header-right">
                 <button class="header-btn" onclick="manualSync()" title="Sync">🔄</button>
-                <button class="header-btn" onclick="navigateTo('settings')" title="Settings">⚙️</button>
+                <button class="header-btn" onclick="navigateTo('settings')" title="Settings">️</button>
             </div>
         </div>
         <div class="app-content" id="appContent"></div>
         <div class="bottom-nav">
             <button class="nav-item active" onclick="navigateTo('home')" id="navHome"><span class="nav-icon">🏠</span><span class="nav-label">Beranda</span></button>
             <button class="nav-item" onclick="navigateTo('category', {category: 'mengaji'})" id="navMengaji"><span class="nav-icon">📖</span><span class="nav-label">Mengaji</span></button>
-            <button class="nav-item" onclick="navigateTo('category', {category: 'cerita'})" id="navCerita"><span class="nav-icon">📚</span><span class="nav-label">Cerita</span></button>
+            <button class="nav-item" onclick="navigateTo('category', {category: 'cerita'})" id="navCerita"><span class="nav-icon"></span><span class="nav-label">Cerita</span></button>
             <button class="nav-item" onclick="navigateTo('rewards')" id="navRewards"><span class="nav-icon"></span><span class="nav-label">Hadiah</span></button>
             <button class="nav-item" onclick="navigateTo('settings')" id="navSettings"><span class="nav-icon">⚙️</span><span class="nav-label">Lainnya</span></button>
         </div>
@@ -285,19 +311,22 @@
             <div class="player-title" id="playerTitle">Judul Video</div>
             <button class="player-btn" id="nextVideoBtn" style="display:none;" title="Selanjutnya">⏭️</button>
             <button class="player-btn claim-btn" id="claimPointsBtn" style="display:none;" title="Klaim Poin">✅ Selesai</button>
-            <button class="player-btn" onclick="toggleFullscreen()" title="Layar Penuh Horizontal">️</button>
+            <button class="player-btn" onclick="toggleFullscreen()" title="Layar Penuh Horizontal">⛶</button>
             <button class="player-btn" onclick="closePlayer()" title="Tutup">✕</button>
         </div>
-        <div class="player-container">
+        <div class="player-container" id="playerContainer">
             <!-- LOADING OVERLAY -->
             <div class="video-loading-overlay" id="videoLoadingOverlay">
                 <div class="video-loading-spinner"></div>
                 <div class="video-loading-text">📹 Memuat Video...</div>
                 <div class="video-loading-subtext">Mohon tunggu sebentar</div>
-                <div class="video-loading-progress">
-                    <div class="video-loading-progress-bar"></div>
-                </div>
             </div>
+            
+            <!-- CUSTOM MINIMALIST CONTROLS OVERLAY -->
+            <div class="video-overlay-controls hidden" id="videoOverlayControls">
+                <button class="overlay-play-btn" id="overlayPlayBtn" onclick="toggleVideoPlay()">▶️</button>
+            </div>
+            
             <iframe id="playerIframe" allowfullscreen allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock"></iframe>
         </div>
     </div>
@@ -314,9 +343,9 @@
         
         const REWARDS_LIST = [
             { id: 'sticker_pack', name: '🎨 Paket Stiker Premium', points: 50, icon: '🎨', description: 'Dapatkan 5 stiker eksklusif', type: 'sticker' },
-            { id: 'premium_story', name: ' Cerita Premium', points: 100, icon: '📚', description: 'Akses 10 cerita premium', type: 'content' },
+            { id: 'premium_story', name: '📚 Cerita Premium', points: 100, icon: '📚', description: 'Akses 10 cerita premium', type: 'content' },
             { id: 'mini_game', name: '🎮 Mini Game Edukasi', points: 200, icon: '🎮', description: 'Buka game tebak huruf hijaiyah', type: 'game' },
-            { id: 'certificate', name: '🏆 Sertifikat Hafiz', points: 500, icon: '🏆', description: 'Sertifikat digital atas nama Anda', type: 'certificate' }
+            { id: 'certificate', name: ' Sertifikat Hafiz', points: 500, icon: '🏆', description: 'Sertifikat digital atas nama Anda', type: 'certificate' }
         ];
 
         function redeemReward(rewardId) {
@@ -340,7 +369,7 @@
         function giveReward(reward) {
             switch(reward.type) {
                 case 'sticker':
-                    const newStickers = ['🌟', '🕌', '📖', '', '🌙'];
+                    const newStickers = ['🌟', '🕌', '', '🤲', '🌙'];
                     newStickers.forEach(sticker => { if (!stickerCollection.includes(sticker)) stickerCollection.push(sticker); });
                     localStorage.setItem('stickerCollection', JSON.stringify(stickerCollection));
                     break;
@@ -366,7 +395,7 @@
 
         function claimVideoPoints(driveId, title) {
             if (watchedVideos.includes(driveId)) {
-                showToast('ℹ️ Poin untuk video ini sudah pernah diklaim!');
+                showToast('️ Poin untuk video ini sudah pernah diklaim!');
                 closePlayer();
                 return;
             }
@@ -407,6 +436,8 @@
         let toastTimeout = null;
         let syncInProgress = false;
         let videoLoadTimeout = null;
+        let overlayHideTimeout = null;
+        let isVideoPlaying = false;
 
         // ===== INIT =====
         document.addEventListener('DOMContentLoaded', function() {
@@ -415,6 +446,13 @@
             document.getElementById('lockPassword').addEventListener('keypress', function(e) { if (e.key === 'Enter') enterApp(); });
             document.getElementById('lockPassword').focus();
             setTimeout(() => { if (dataNeedsSync()) autoSync(); }, 2000);
+            
+            // Tap pada player container untuk show/hide controls
+            document.getElementById('playerContainer').addEventListener('click', function(e) {
+                // Jangan trigger jika klik tombol overlay
+                if (e.target.closest('.overlay-play-btn')) return;
+                toggleOverlayControls();
+            });
         });
 
         function loadData() {
@@ -590,7 +628,7 @@
                     </div>
                 </div>
                 <div class="progress-card">
-                    <div class="progress-title"> Progress Belajar Hari Ini</div>
+                    <div class="progress-title">📊 Progress Belajar Hari Ini</div>
                     <div class="progress-bar"><div class="progress-fill" style="width: ${progressPercent}%"></div></div>
                     <div class="progress-text">${videosWatched} dari ${totalVideos} video ditonton sampai selesai (${Math.round(progressPercent)}%)</div>
                 </div>
@@ -598,16 +636,16 @@
                     <div class="feature-card" onclick="navigateTo('category', {category: 'mengaji'})"><div class="feature-icon" style="background:#1a7a4c;">📖</div><div class="feature-name">Mengaji</div></div>
                     <div class="feature-card" onclick="navigateTo('category', {category: 'cerita'})"><div class="feature-icon" style="background:#7b1fa2;">📚</div><div class="feature-name">Cerita</div></div>
                     <div class="feature-card" onclick="navigateTo('rewards')"><div class="feature-icon" style="background:#f093fb;">🎁</div><div class="feature-name">Hadiah</div></div>
-                    <div class="feature-card" onclick="showDailyJuz()"><div class="feature-icon" style="background:#667eea;">📅</div><div class="feature-name">Juz Harian</div></div>
+                    <div class="feature-card" onclick="showDailyJuz()"><div class="feature-icon" style="background:#667eea;"></div><div class="feature-name">Juz Harian</div></div>
                 </div>
                 <div class="category-section">
-                    <div class="section-title"> Menu Belajar</div>
+                    <div class="section-title">🎓 Menu Belajar</div>
                     <div class="category-grid">${categoryHTML || '<div class="empty-state"><div class="empty-icon">📦</div><p>Belum ada data. Klik 🔄 untuk sync.</p></div>'}</div>
                 </div>
                 <div class="debug-panel">
                     <strong>📊 Debug:</strong> ${totalVideos} video • ${totalFolders} folder<br>
-                    <button onclick="manualSync()" style="background:#2196F3; color:white; border:none; padding:4px 10px; border-radius:4px; margin-top:6px; font-size:10px; cursor:pointer;"> Sync</button>
-                    <button onclick="clearAllCache()" style="background:#f44336; color:white; border:none; padding:4px 10px; border-radius:4px; margin-top:6px; font-size:10px; cursor:pointer;">🗑️ Clear</button>
+                    <button onclick="manualSync()" style="background:#2196F3; color:white; border:none; padding:4px 10px; border-radius:4px; margin-top:6px; font-size:10px; cursor:pointer;">🔄 Sync</button>
+                    <button onclick="clearAllCache()" style="background:#f44336; color:white; border:none; padding:4px 10px; border-radius:4px; margin-top:6px; font-size:10px; cursor:pointer;">️ Clear</button>
                 </div>`;
         }
 
@@ -631,8 +669,8 @@
             document.getElementById('appContent').innerHTML = `
                 <button class="back-btn" onclick="goBack()">← Kembali</button>
                 <div class="breadcrumb"><span onclick="navigateTo('home')">Beranda</span> / ${category.title}</div>
-                <div class="page-title">${category.icon || '📁'} ${category.title}</div>
-                <div style="font-size: 12px; color: var(--text-light); margin-bottom: 12px; padding: 0 4px;">📊 ${category.totalVideos || 0} video dalam ${folderNames.length} folder</div>
+                <div class="page-title">${category.icon || ''} ${category.title}</div>
+                <div style="font-size: 12px; color: var(--text-light); margin-bottom: 12px; padding: 0 4px;"> ${category.totalVideos || 0} video dalam ${folderNames.length} folder</div>
                 <div class="folder-list">${foldersHTML}</div>`;
         }
 
@@ -676,7 +714,7 @@
                 <button class="back-btn" onclick="navigateTo('folder', {category: '${categoryKey}', folder: '${safeFolder}'})">← Kembali</button>
                 <div class="breadcrumb"><span onclick="navigateTo('home')">Beranda</span> / <span onclick="navigateTo('category', {category: '${categoryKey}'})">${category.title}</span> / <span onclick="navigateTo('folder', {category: '${categoryKey}', folder: '${safeFolder}'})">${folderName}</span></div>
                 <div class="video-detail-card">
-                    <div class="video-detail-icon"></div>
+                    <div class="video-detail-icon">🎬</div>
                     <h3 class="video-detail-title">${item.name}</h3>
                     <div class="video-folder-tag">📁 ${item.folder || folderName}</div>
                     <p class="video-detail-desc">${item.desc || 'Video edukasi Islami'}</p>
@@ -684,13 +722,13 @@
                     
                     <button class="btn-action btn-primary" onclick="streamVideo('${driveId}', '${safeName}', '${categoryKey}', '${safeFolder}', '${item.id}')">▶️ Putar di Aplikasi</button>
                     
-                    <button class="btn-action btn-warning" onclick="openVideoInNewTab('${driveId}')">🌐 Buka di Tab Baru (Lebih Cepat)</button>
+                    <button class="btn-action btn-warning" onclick="openVideoInNewTab('${driveId}')">🌐 Buka di Tab Baru (Lebih Cepat & Jernih)</button>
                     
                     <button class="btn-action btn-secondary" onclick="downloadVideo('${driveId}', '${safeName}')">⬇️ Download</button>
                     <button class="btn-action btn-download ${isSaved ? 'downloaded' : ''}" onclick="${isSaved ? `deleteVideo('${driveId}', '${safeName}', '${categoryKey}', '${safeFolder}')` : `addToDownloadedList('${driveId}', '${safeName}')`}">${isSaved ? '✓ Tersimpan (Hapus)' : '📥 Simpan ke Daftar'}</button>
                     
-                    <div style="margin-top: 12px; padding: 10px; background: #fff3cd; border-radius: 8px; font-size: 11px; color: #856404;">
-                        💡 <strong>Tips:</strong> Jika video lama dimuat, gunakan tombol "Buka di Tab Baru" untuk pengalaman lebih cepat!
+                    <div style="margin-top: 12px; padding: 10px; background: #e3f2fd; border-radius: 8px; font-size: 11px; color: #1565c0;">
+                        💡 <strong>Tips:</strong> Tap layar video untuk show/hide kontrol. Gunakan tombol "Buka di Tab Baru" untuk pengalaman terbaik!
                     </div>
                 </div>`;
         }
@@ -700,11 +738,16 @@
             showToast('🌐 Video dibuka di tab baru. Silakan putar & fullscreen!');
         }
 
-        // ===== STREAM VIDEO DENGAN LOADING OPTIMIZED =====
+        // ===== STREAM VIDEO DENGAN MINIMALIST CONTROLS =====
         function streamVideo(driveId, title, categoryKey, folderName, itemId) {
             // Tampilkan loading overlay
             const loadingOverlay = document.getElementById('videoLoadingOverlay');
+            const overlayControls = document.getElementById('videoOverlayControls');
+            const overlayPlayBtn = document.getElementById('overlayPlayBtn');
+            
             loadingOverlay.classList.remove('hidden');
+            overlayControls.classList.add('hidden');
+            overlayPlayBtn.classList.remove('show');
             
             document.getElementById('playerTitle').textContent = title;
             
@@ -715,11 +758,20 @@
                 // Sembunyikan loading setelah iframe load
                 setTimeout(() => {
                     loadingOverlay.classList.add('hidden');
-                }, 500); // Delay sedikit agar smooth
+                    // Tampilkan overlay controls sebentar
+                    overlayControls.classList.remove('hidden');
+                    overlayPlayBtn.classList.add('show');
+                    
+                    // Auto-hide setelah 3 detik
+                    setTimeout(() => {
+                        overlayControls.classList.add('hidden');
+                        overlayPlayBtn.classList.remove('show');
+                    }, 3000);
+                }, 500);
             };
             
-            // Set src iframe (ini yang memicu load)
-            iframe.src = `https://drive.google.com/file/d/${driveId}/preview?autoplay=1`;
+            // Set src iframe dengan parameter untuk mengurangi kontrol bawaan
+            iframe.src = `https://drive.google.com/file/d/${driveId}/preview?autoplay=1&rm=minimal`;
             
             const category = CONTENT[categoryKey];
             if (category && category.folders && category.folders[folderName]) {
@@ -747,6 +799,7 @@
             }
             
             document.getElementById('streamingPlayer').classList.add('active');
+            isVideoPlaying = true;
             
             // Auto fullscreen
             setTimeout(() => {
@@ -768,17 +821,69 @@
             }, 10000);
         }
 
+        // Toggle overlay controls (show/hide)
+        function toggleOverlayControls() {
+            const overlayControls = document.getElementById('videoOverlayControls');
+            const overlayPlayBtn = document.getElementById('overlayPlayBtn');
+            
+            if (overlayControls.classList.contains('hidden')) {
+                overlayControls.classList.remove('hidden');
+                overlayPlayBtn.classList.add('show');
+                
+                // Auto-hide setelah 3 detik
+                if (overlayHideTimeout) clearTimeout(overlayHideTimeout);
+                overlayHideTimeout = setTimeout(() => {
+                    overlayControls.classList.add('hidden');
+                    overlayPlayBtn.classList.remove('show');
+                }, 3000);
+            } else {
+                overlayControls.classList.add('hidden');
+                overlayPlayBtn.classList.remove('show');
+            }
+        }
+
+        // Toggle play/pause (simulasi - karena tidak bisa kontrol iframe Google Drive langsung)
+        function toggleVideoPlay() {
+            const overlayPlayBtn = document.getElementById('overlayPlayBtn');
+            
+            if (isVideoPlaying) {
+                overlayPlayBtn.textContent = '▶️';
+                isVideoPlaying = false;
+                showToast('⏸️ Video dipause (tap layar untuk lanjut)');
+            } else {
+                overlayPlayBtn.textContent = '⏸️';
+                isVideoPlaying = true;
+                showToast('▶️ Video diputar');
+            }
+            
+            // Hide overlay setelah 1 detik
+            setTimeout(() => {
+                document.getElementById('videoOverlayControls').classList.add('hidden');
+                overlayPlayBtn.classList.remove('show');
+            }, 1000);
+        }
+
         function closePlayer() {
             if (videoLoadTimeout) {
                 clearTimeout(videoLoadTimeout);
                 videoLoadTimeout = null;
             }
+            if (overlayHideTimeout) {
+                clearTimeout(overlayHideTimeout);
+                overlayHideTimeout = null;
+            }
             
             const iframe = document.getElementById('playerIframe');
             const loadingOverlay = document.getElementById('videoLoadingOverlay');
+            const overlayControls = document.getElementById('videoOverlayControls');
+            const overlayPlayBtn = document.getElementById('overlayPlayBtn');
             
             iframe.src = '';
-            loadingOverlay.classList.remove('hidden'); // Reset loading untuk video berikutnya
+            loadingOverlay.classList.remove('hidden');
+            overlayControls.classList.add('hidden');
+            overlayPlayBtn.classList.remove('show');
+            isVideoPlaying = false;
+            
             document.getElementById('streamingPlayer').classList.remove('active');
             document.getElementById('prevVideoBtn').style.display = 'none';
             document.getElementById('nextVideoBtn').style.display = 'none';
@@ -794,15 +899,15 @@
         }
 
         function toggleFullscreen() {
-            const iframe = document.getElementById('playerIframe');
+            const player = document.getElementById('streamingPlayer');
             
             if (!document.fullscreenElement) {
-                if (iframe.requestFullscreen) {
-                    iframe.requestFullscreen().catch(err => console.log('Fullscreen error:', err));
-                } else if (iframe.webkitRequestFullscreen) {
-                    iframe.webkitRequestFullscreen();
-                } else if (iframe.msRequestFullscreen) {
-                    iframe.msRequestFullscreen();
+                if (player.requestFullscreen) {
+                    player.requestFullscreen().catch(err => console.log('Fullscreen error:', err));
+                } else if (player.webkitRequestFullscreen) {
+                    player.webkitRequestFullscreen();
+                } else if (player.msRequestFullscreen) {
+                    player.msRequestFullscreen();
                 }
                 
                 if (screen.orientation && screen.orientation.lock) {
@@ -836,7 +941,7 @@
             if (confirm(`Hapus "${name}"?`)) {
                 downloadedVideos = downloadedVideos.filter(id => id !== driveId);
                 localStorage.setItem('downloadedVideos', JSON.stringify(downloadedVideos));
-                showToast('️ Dihapus');
+                showToast('🗑️ Dihapus');
                 const item = CONTENT[categoryKey]?.folders[folderName]?.items.find(i => i.driveId === driveId);
                 if (item) showVideoDetail(categoryKey, folderName, item.id);
             }
@@ -888,12 +993,12 @@
                 </div>
                 <div class="settings-group">
                     <div style="padding: 14px 16px; background: #f0f0f0; font-size: 13px; font-weight: 600;">🎯 Cara Dapat Poin:</div>
-                    <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e8f5e9;"></div><div class="settings-item-text"><h4>Tonton Video Sampai Selesai</h4><p>+10 poin (Klik tombol "Selesai")</p></div></div></div>
+                    <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e8f5e9;">🎬</div><div class="settings-item-text"><h4>Tonton Video Sampai Selesai</h4><p>+10 poin (Klik tombol "Selesai")</p></div></div></div>
                     <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd;">💾</div><div class="settings-item-text"><h4>Download Video</h4><p>+5 poin setiap download</p></div></div></div>
-                    <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0;">📅</div><div class="settings-item-text"><h4>Juz Harian</h4><p>+5 poin setiap cek juz</p></div></div></div>
+                    <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0;"></div><div class="settings-item-text"><h4>Juz Harian</h4><p>+5 poin setiap cek juz</p></div></div></div>
                 </div>
                 <div class="settings-group">
-                    <div style="padding: 14px 16px; background: #f0f0f0; font-size: 13px; font-weight: 600;">🎁 Tukar Poin:</div>
+                    <div style="padding: 14px 16px; background: #f0f0f0; font-size: 13px; font-weight: 600;"> Tukar Poin:</div>
                     ${rewardsHTML}
                 </div>
                 ${stickerSection}
@@ -907,11 +1012,11 @@
                 <div class="page-title">⚙️ Pengaturan</div>
                 <div class="settings-group">
                     <div class="settings-item" onclick="promptUserName()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd;">👤</div><div class="settings-item-text"><h4>Nama Anak</h4><p>${userName}</p></div></div><span>›</span></div>
-                    <div class="settings-item" onclick="manualSync()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0; color:#e65100;"></div><div class="settings-item-text"><h4>Manual Sync</h4><p>Ambil data dari Drive</p></div></div><span>›</span></div>
+                    <div class="settings-item" onclick="manualSync()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0; color:#e65100;">🔄</div><div class="settings-item-text"><h4>Manual Sync</h4><p>Ambil data dari Drive</p></div></div><span>›</span></div>
                     <div class="settings-item" onclick="clearAllCache()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#ffebee; color:#c62828;">🗑️</div><div class="settings-item-text"><h4>Clear Cache</h4><p>Hapus data lokal</p></div></div><span>›</span></div>
                     <div class="settings-item" onclick="resetProgress()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd; color:#1565c0;">🔄</div><div class="settings-item-text"><h4>Reset Progress</h4><p>Reset poin & video</p></div></div><span>›</span></div>
                 </div>
-                <div style="text-align:center; padding:14px; color:var(--text-light); font-size:10px;">Smart Hafiz v14.0<br>Belajar Seru Setiap Hari!<br>© 2024</div>`;
+                <div style="text-align:center; padding:14px; color:var(--text-light); font-size:10px;">Smart Hafiz v15.0<br>Belajar Seru Setiap Hari!<br>© 2024</div>`;
         }
 
         function promptUserName() { const newName = prompt('Masukkan nama anak:', userName); if (newName && newName.trim()) { userName = newName.trim(); localStorage.setItem('userName', userName); showToast(`✅ Nama diubah menjadi ${userName}`); renderSettings(); } }
