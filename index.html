@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1a7a4c">
-    <title>Smart Hafiz</title>
+    <title>Smart Hafiz - Belajar Seru!</title>
     
     <link rel="preconnect" href="https://drive.google.com">
     <link rel="preconnect" href="https://script.google.com">
@@ -14,130 +14,174 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
         html, body { width: 100%; height: 100%; overflow: hidden; position: fixed; }
-        :root { --primary: #1a7a4c; --primary-dark: #0d5c35; --secondary: #f0a500; --bg: #f0f2f5; --card-bg: #ffffff; --text: #333333; --text-light: #666666; --shadow: 0 2px 8px rgba(0,0,0,0.08); --radius: 12px; }
+        :root { 
+            --primary: #1a7a4c; 
+            --primary-dark: #0d5c35; 
+            --secondary: #f0a500; 
+            --accent: #e74c3c;
+            --bg: #f0f4f8; 
+            --card-bg: #ffffff; 
+            --text: #333333; 
+            --text-light: #666666; 
+            --shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            --radius: 16px;
+            --color-arab: #2ecc71;
+            --color-indo: #3498db;
+            --color-inggris: #e74c3c;
+            --color-mandarin: #f39c12;
+            --color-ipa: #9b59b6;
+            --color-ips: #1abc9c;
+            --color-matematika: #e67e22;
+            --color-cerita: #7b1fa2;
+        }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
         
-        #lockScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #1a7a4c 0%, #0d5c35 50%, #1a7a4c 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; }
+        /* LOCK SCREEN */
+        #lockScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; }
         #lockScreen.hidden { opacity: 0; pointer-events: none; transition: opacity 0.3s; }
-        .lock-logo { width: 100px; height: 100px; background: white; border-radius: 25px; display: flex; align-items: center; justify-content: center; font-size: 50px; margin-bottom: 15px; }
-        .lock-title { color: white; font-size: 24px; font-weight: bold; margin-bottom: 5px; }
-        .lock-subtitle { color: rgba(255,255,255,0.8); font-size: 13px; margin-bottom: 25px; }
-        .lock-input { width: 75%; max-width: 260px; padding: 13px 18px; border: none; border-radius: 50px; font-size: 17px; text-align: center; margin-bottom: 12px; outline: none; }
-        .lock-btn { padding: 11px 35px; border: none; border-radius: 50px; font-size: 15px; font-weight: bold; background: var(--secondary); color: white; cursor: pointer; }
+        .lock-logo { width: 120px; height: 120px; background: white; border-radius: 30px; display: flex; align-items: center; justify-content: center; font-size: 60px; margin-bottom: 20px; animation: bounce 2s infinite; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .lock-title { color: white; font-size: 28px; font-weight: bold; margin-bottom: 5px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .lock-subtitle { color: rgba(255,255,255,0.9); font-size: 14px; margin-bottom: 30px; }
+        .lock-input { width: 75%; max-width: 260px; padding: 14px 20px; border: none; border-radius: 50px; font-size: 18px; text-align: center; margin-bottom: 15px; outline: none; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
+        .lock-btn { padding: 12px 40px; border: none; border-radius: 50px; font-size: 16px; font-weight: bold; background: var(--secondary); color: white; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .lock-btn:active { transform: scale(0.95); }
         
+        /* MAIN APP */
         #mainApp { display: none; height: 100vh; height: 100dvh; flex-direction: column; width: 100%; }
         #mainApp.active { display: flex; }
-        .app-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.2); width: 100%; flex-shrink: 0; }
-        .header-left { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
-        .header-logo { width: 32px; height: 32px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-        .header-title { font-size: 16px; font-weight: bold; }
-        .header-subtitle { font-size: 9px; opacity: 0.8; }
-        .header-right { display: flex; gap: 6px; flex-shrink: 0; }
-        .header-btn { width: 32px; height: 32px; border: none; border-radius: 50%; background: rgba(255,255,255,0.2); color: white; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         
-        .app-content { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 10px; padding-bottom: 75px; width: 100%; -webkit-overflow-scrolling: touch; }
+        /* HEADER */
+        .app-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.2); width: 100%; flex-shrink: 0; }
+        .header-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+        .header-logo { width: 40px; height: 40px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+        .header-title { font-size: 18px; font-weight: bold; }
+        .header-subtitle { font-size: 10px; opacity: 0.9; }
+        .header-right { display: flex; gap: 8px; flex-shrink: 0; }
+        .header-btn { width: 36px; height: 36px; border: none; border-radius: 50%; background: rgba(255,255,255,0.2); color: white; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        
+        /* APP CONTENT */
+        .app-content { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px; padding-bottom: 80px; width: 100%; -webkit-overflow-scrolling: touch; }
         .app-content::-webkit-scrollbar { width: 0; }
-        .page-title { font-size: 18px; font-weight: bold; color: var(--primary-dark); margin-bottom: 10px; padding: 0 4px; }
         
-        .category-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; width: 100%; }
-        .category-card { background: var(--card-bg); border-radius: var(--radius); padding: 12px 8px; box-shadow: var(--shadow); cursor: pointer; text-align: center; transition: transform 0.15s; }
-        .category-card:active { transform: scale(0.96); }
-        .category-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 6px; color: white; }
-        .category-name { font-size: 11px; font-weight: 600; line-height: 1.2; }
-        .category-count { font-size: 9px; color: var(--text-light); margin-top: 2px; }
+        /* HERO BANNER */
+        .hero-banner { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; padding: 20px; color: white; margin-bottom: 16px; position: relative; overflow: hidden; }
+        .hero-banner::before { content: '⭐'; position: absolute; top: 10px; right: 20px; font-size: 40px; opacity: 0.3; }
+        .hero-banner::after { content: '🌟'; position: absolute; bottom: 10px; left: 20px; font-size: 30px; opacity: 0.3; }
+        .hero-greeting { font-size: 14px; opacity: 0.9; margin-bottom: 4px; }
+        .hero-name { font-size: 22px; font-weight: bold; margin-bottom: 8px; }
+        .hero-stats { display: flex; gap: 15px; margin-top: 12px; }
+        .hero-stat { background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 12px; font-size: 12px; }
+        .hero-stat-value { font-size: 18px; font-weight: bold; }
         
-        .folder-list, .video-list { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-        .folder-item, .video-item { background: var(--card-bg); border-radius: 10px; padding: 11px 13px; box-shadow: var(--shadow); cursor: pointer; display: flex; align-items: center; gap: 10px; border-left: 3px solid var(--primary); transition: transform 0.15s; }
-        .folder-item:active, .video-item:active { transform: translateX(3px); }
-        .folder-icon, .video-thumb { width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; color: white; }
+        /* PROGRESS CARD */
+        .progress-card { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 16px; padding: 16px; color: white; margin-bottom: 16px; }
+        .progress-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+        .progress-bar { width: 100%; height: 10px; background: rgba(255,255,255,0.3); border-radius: 5px; overflow: hidden; margin-bottom: 6px; }
+        .progress-fill { height: 100%; background: white; border-radius: 5px; transition: width 0.5s; }
+        .progress-text { font-size: 11px; opacity: 0.9; }
+        
+        /* CATEGORY GRID - GENIUS KIDS STYLE */
+        .category-section { margin-bottom: 20px; }
+        .section-title { font-size: 18px; font-weight: bold; color: var(--primary-dark); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .category-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .category-card { background: var(--card-bg); border-radius: 16px; padding: 16px; box-shadow: var(--shadow); cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden; }
+        .category-card:active { transform: scale(0.95); }
+        .category-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+        .category-card.arab::before { background: var(--color-arab); }
+        .category-card.indo::before { background: var(--color-indo); }
+        .category-card.inggris::before { background: var(--color-inggris); }
+        .category-card.mandarin::before { background: var(--color-mandarin); }
+        .category-card.ipa::before { background: var(--color-ipa); }
+        .category-card.ips::before { background: var(--color-ips); }
+        .category-card.matematika::before { background: var(--color-matematika); }
+        .category-card.cerita::before { background: var(--color-cerita); }
+        .category-card.mengaji::before { background: var(--primary); }
+        .category-card.film::before { background: var(--accent); }
+        .category-icon { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 10px; color: white; }
+        .category-name { font-size: 13px; font-weight: 600; text-align: center; line-height: 1.3; }
+        .category-count { font-size: 10px; color: var(--text-light); text-align: center; margin-top: 4px; }
+        
+        /* FEATURE CARDS */
+        .feature-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        .feature-card { background: var(--card-bg); border-radius: 12px; padding: 12px 8px; box-shadow: var(--shadow); cursor: pointer; text-align: center; transition: all 0.3s; }
+        .feature-card:active { transform: scale(0.95); }
+        .feature-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin: 0 auto 6px; color: white; }
+        .feature-name { font-size: 10px; font-weight: 600; line-height: 1.2; }
+        
+        /* FOLDER LIST */
+        .folder-list, .video-list { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+        .folder-item, .video-item { background: var(--card-bg); border-radius: 12px; padding: 12px 14px; box-shadow: var(--shadow); cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.3s; border-left: 4px solid var(--primary); }
+        .folder-item:active, .video-item:active { transform: translateX(5px); }
+        .folder-icon, .video-thumb { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; color: white; }
         .folder-icon { background: #fff3e0; color: #e65100; }
         .folder-text, .video-text { flex: 1; min-width: 0; }
-        .folder-name, .video-title { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .folder-count, .video-meta { font-size: 10px; color: var(--text-light); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .badge { font-size: 8px; padding: 1px 5px; border-radius: 6px; flex-shrink: 0; margin-left: 4px; }
+        .folder-name, .video-title { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .folder-count, .video-meta { font-size: 11px; color: var(--text-light); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .badge { font-size: 9px; padding: 2px 6px; border-radius: 8px; flex-shrink: 0; margin-left: 4px; }
         .badge-downloaded { background: #e8f5e9; color: #2e7d32; }
         .badge-online { background: #e3f2fd; color: #1565c0; }
         
-        .back-btn { padding: 7px 14px; border: none; border-radius: 50px; background: var(--primary); color: white; font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 10px; display: inline-flex; align-items: center; gap: 5px; }
-        .breadcrumb { font-size: 11px; color: var(--text-light); margin-bottom: 10px; padding: 0 4px; }
+        .back-btn { padding: 8px 16px; border: none; border-radius: 50px; background: var(--primary); color: white; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 12px; display: inline-flex; align-items: center; gap: 6px; }
+        .breadcrumb { font-size: 12px; color: var(--text-light); margin-bottom: 12px; padding: 0 4px; }
         .breadcrumb span { cursor: pointer; color: var(--primary); }
         
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 5px 0; padding-bottom: max(5px, env(safe-area-inset-bottom)); box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 200; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 3px 6px; cursor: pointer; border: none; background: none; color: var(--text-light); flex: 1; }
+        /* BOTTOM NAV - GENIUS KIDS STYLE */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 8px 0; padding-bottom: max(8px, env(safe-area-inset-bottom)); box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 200; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 8px; cursor: pointer; border: none; background: none; color: var(--text-light); flex: 1; transition: all 0.3s; }
         .nav-item.active { color: var(--primary); }
-        .nav-icon { font-size: 18px; }
-        .nav-label { font-size: 8px; font-weight: 600; }
+        .nav-icon { font-size: 22px; }
+        .nav-label { font-size: 10px; font-weight: 600; }
         
-        .btn-action { width: 100%; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        /* BUTTONS */
+        .btn-action { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-action:active { transform: scale(0.98); }
         .btn-primary { background: var(--primary); color: white; }
         .btn-secondary { background: #2196F3; color: white; }
         .btn-download { background: white; color: var(--primary); border: 2px solid var(--primary); }
         .btn-download.downloaded { background: #4CAF50; color: white; border-color: #4CAF50; }
         .btn-danger { background: #f44336; color: white; }
-        .btn-warning { background: #ff9800; color: white; }
-        .btn-success { background: #4CAF50; color: white; }
         
-        .video-detail-card { background: white; border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); text-align: center; margin-bottom: 14px; }
-        .video-detail-icon { font-size: 50px; margin-bottom: 10px; }
-        .video-detail-title { font-size: 17px; margin-bottom: 6px; line-height: 1.3; }
-        .video-detail-desc { color: var(--text-light); margin-bottom: 16px; font-size: 12px; }
-        .video-size-badge, .video-folder-tag { background: #f0f0f0; padding: 5px 12px; border-radius: 18px; display: inline-block; margin-bottom: 10px; font-size: 10px; }
+        /* VIDEO DETAIL */
+        .video-detail-card { background: white; border-radius: 16px; padding: 20px; box-shadow: var(--shadow); text-align: center; margin-bottom: 16px; }
+        .video-detail-icon { font-size: 60px; margin-bottom: 12px; }
+        .video-detail-title { font-size: 18px; margin-bottom: 8px; line-height: 1.3; }
+        .video-detail-desc { color: var(--text-light); margin-bottom: 16px; font-size: 13px; }
+        .video-size-badge, .video-folder-tag { background: #f0f0f0; padding: 6px 14px; border-radius: 20px; display: inline-block; margin-bottom: 10px; font-size: 11px; }
         .video-folder-tag { background: #fff3e0; color: #e65100; }
         
+        /* VIDEO PLAYER */
         #streamingPlayer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5000; display: none; flex-direction: column; }
         #streamingPlayer.active { display: flex; }
-        .player-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-        .player-title { font-size: 13px; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 8px; }
-        .player-btn { width: 32px; height: 32px; border: none; border-radius: 50%; background: rgba(255,255,255,0.2); color: white; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .player-container { flex: 1; width: 100%; position: relative; overflow: hidden; }
+        .player-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; gap: 6px; }
+        .player-title { font-size: 13px; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
+        .player-btn { width: 34px; height: 34px; border: none; border-radius: 50%; background: rgba(255,255,255,0.2); color: white; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .player-container { flex: 1; width: 100%; position: relative; overflow: hidden; background: #000; }
         .player-container iframe { width: 100%; height: 100%; border: none; }
         
-        .storage-info { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: var(--radius); padding: 14px; color: white; margin-bottom: 14px; }
-        .storage-bar { width: 100%; height: 5px; background: rgba(255,255,255,0.3); border-radius: 3px; margin: 6px 0; overflow: hidden; }
-        .storage-fill { height: 100%; background: white; border-radius: 3px; transition: width 0.5s; }
-        
-        .toast { position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: white; padding: 9px 18px; border-radius: 50px; font-size: 12px; z-index: 9999; opacity: 0; visibility: hidden; transition: opacity 0.25s, visibility 0.25s; white-space: nowrap; pointer-events: none; max-width: 85%; overflow: hidden; text-overflow: ellipsis; }
+        /* TOAST */
+        .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: white; padding: 10px 20px; border-radius: 50px; font-size: 13px; z-index: 9999; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; white-space: nowrap; pointer-events: none; max-width: 85%; overflow: hidden; text-overflow: ellipsis; }
         .toast.show { opacity: 1; visibility: visible; }
         
-        .empty-state { text-align: center; padding: 30px 15px; color: var(--text-light); }
-        .empty-icon { font-size: 40px; margin-bottom: 10px; }
+        /* EMPTY STATE */
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-light); }
+        .empty-icon { font-size: 50px; margin-bottom: 12px; }
         
-        .settings-group { background: white; border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; box-shadow: var(--shadow); }
-        .settings-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
+        /* SETTINGS */
+        .settings-group { background: white; border-radius: 16px; margin-bottom: 12px; overflow: hidden; box-shadow: var(--shadow); }
+        .settings-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
         .settings-item:last-child { border-bottom: none; }
-        .settings-item-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
-        .settings-item-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+        .settings-item-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+        .settings-item-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
         .settings-item-text { flex: 1; min-width: 0; }
-        .settings-item-text h4 { font-size: 12px; }
-        .settings-item-text p { font-size: 9px; color: var(--text-light); }
+        .settings-item-text h4 { font-size: 14px; }
+        .settings-item-text p { font-size: 11px; color: var(--text-light); }
         
-        /* SYNC PROGRESS */
-        .sync-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 8000; flex-direction: column; }
-        .sync-overlay.active { display: flex; }
-        .sync-box { background: white; border-radius: 16px; padding: 30px; width: 85%; max-width: 320px; text-align: center; }
-        .sync-spinner { width: 50px; height: 50px; border: 4px solid #f0f0f0; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .sync-title { font-size: 16px; font-weight: bold; color: var(--primary); margin-bottom: 8px; }
-        .sync-status { font-size: 12px; color: var(--text-light); margin-bottom: 12px; }
-        .sync-progress { width: 100%; height: 6px; background: #f0f0f0; border-radius: 3px; overflow: hidden; margin-bottom: 10px; }
-        .sync-progress-bar { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s; }
-        .sync-btn { padding: 8px 20px; border: none; border-radius: 8px; background: var(--primary); color: white; font-size: 12px; font-weight: 600; cursor: pointer; margin: 4px; }
-        .sync-btn:active { transform: scale(0.95); }
-        .sync-btn.cancel { background: #f44336; }
+        /* REWARD BADGE */
+        .reward-badge { position: fixed; top: 70px; right: 10px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 4px; }
         
-        /* ALERT BOXES */
-        .alert-box { background: #fff3cd; border: 2px solid #ffc107; border-radius: 10px; padding: 12px; margin-bottom: 12px; font-size: 12px; }
-        .alert-box.error { background: #ffebee; border-color: #f44336; }
-        .alert-box.success { background: #e8f5e9; border-color: #4CAF50; }
-        .alert-box h4 { margin-bottom: 6px; font-size: 13px; }
-        .alert-box p { margin-bottom: 8px; }
-        .alert-box button { background: #ffc107; color: #000; border: none; padding: 7px 14px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; margin-right: 5px; }
-        .alert-box.error button { background: #f44336; color: white; }
-        .alert-box.success button { background: #4CAF50; color: white; }
-        
+        /* DEBUG PANEL */
         .debug-panel { background: #e3f2fd; border: 1px solid #2196F3; border-radius: 8px; padding: 10px; margin-bottom: 12px; font-size: 11px; color: #1565c0; }
-        .debug-panel strong { display: block; margin-bottom: 4px; }
         
         @media (min-width: 500px) { .category-grid { grid-template-columns: repeat(3, 1fr); } .app-content { max-width: 600px; margin: 0 auto; } }
     </style>
@@ -148,24 +192,15 @@
     <div id="lockScreen">
         <div class="lock-logo">📖</div>
         <div class="lock-title">Smart Hafiz</div>
-        <div class="lock-subtitle">Streaming Tanpa Login</div>
+        <div class="lock-subtitle">Belajar Seru Setiap Hari! 🌟</div>
         <input type="password" class="lock-input" id="lockPassword" placeholder="PIN (1234)" maxlength="6" inputmode="numeric">
         <button class="lock-btn" onclick="enterApp()">🔓 Masuk</button>
-        <div style="color: rgba(255,255,255,0.5); font-size: 11px; margin-top: 15px;">PIN: 1234</div>
+        <div style="color: rgba(255,255,255,0.6); font-size: 11px; margin-top: 15px;">PIN: 1234</div>
     </div>
 
-    <!-- SYNC OVERLAY -->
-    <div class="sync-overlay" id="syncOverlay">
-        <div class="sync-box">
-            <div class="sync-spinner"></div>
-            <div class="sync-title" id="syncTitle"> Syncing...</div>
-            <div class="sync-status" id="syncStatus">Menghubungi server...</div>
-            <div class="sync-progress">
-                <div class="sync-progress-bar" id="syncProgressBar"></div>
-            </div>
-            <div style="font-size: 10px; color: var(--text-light); margin-bottom: 10px;" id="syncAttempt">Percobaan: 1/3</div>
-            <button class="sync-btn cancel" onclick="cancelSync()">Batal</button>
-        </div>
+    <!-- REWARD BADGE -->
+    <div class="reward-badge" id="rewardBadge" style="display:none;">
+        ⭐ <span id="rewardPoints">0</span> Poin
     </div>
 
     <!-- MAIN APP -->
@@ -175,20 +210,20 @@
                 <div class="header-logo">📖</div>
                 <div style="min-width: 0; flex: 1;">
                     <div class="header-title">Smart Hafiz</div>
-                    <div class="header-subtitle" id="headerStatus">Memuat...</div>
+                    <div class="header-subtitle" id="headerStatus">Belajar Seru!</div>
                 </div>
             </div>
             <div class="header-right">
-                <button class="header-btn" onclick="manualSync()" title="Sync">🔄</button>
-                <button class="header-btn" onclick="navigateTo('settings')" title="Settings">️</button>
+                <button class="header-btn" onclick="manualSync()" title="Sync"></button>
+                <button class="header-btn" onclick="navigateTo('settings')" title="Settings">⚙️</button>
             </div>
         </div>
         <div class="app-content" id="appContent"></div>
         <div class="bottom-nav">
-            <button class="nav-item active" onclick="navigateTo('home')" id="navHome"><span class="nav-icon">🏠</span><span class="nav-label">Beranda</span></button>
+            <button class="nav-item active" onclick="navigateTo('home')" id="navHome"><span class="nav-icon"></span><span class="nav-label">Beranda</span></button>
             <button class="nav-item" onclick="navigateTo('category', {category: 'mengaji'})" id="navMengaji"><span class="nav-icon">📖</span><span class="nav-label">Mengaji</span></button>
-            <button class="nav-item" onclick="navigateTo('category', {category: 'cerita'})" id="navCerita"><span class="nav-icon"></span><span class="nav-label">Cerita</span></button>
-            <button class="nav-item" onclick="navigateTo('downloads')" id="navDownloads"><span class="nav-icon">💾</span><span class="nav-label">Download</span></button>
+            <button class="nav-item" onclick="navigateTo('category', {category: 'cerita'})" id="navCerita"><span class="nav-icon">📚</span><span class="nav-label">Cerita</span></button>
+            <button class="nav-item" onclick="navigateTo('rewards')" id="navRewards"><span class="nav-icon">🎁</span><span class="nav-label">Hadiah</span></button>
             <button class="nav-item" onclick="navigateTo('settings')" id="navSettings"><span class="nav-icon">⚙️</span><span class="nav-label">Lainnya</span></button>
         </div>
     </div>
@@ -196,9 +231,11 @@
     <!-- STREAMING PLAYER -->
     <div id="streamingPlayer">
         <div class="player-header">
+            <button class="player-btn" id="prevVideoBtn" style="display:none;" title="Sebelumnya">⏮️</button>
             <div class="player-title" id="playerTitle">Judul Video</div>
-            <button class="player-btn" onclick="toggleFullscreen()">⛶</button>
-            <button class="player-btn" onclick="closePlayer()">✕</button>
+            <button class="player-btn" id="nextVideoBtn" style="display:none;" title="Selanjutnya">️</button>
+            <button class="player-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
+            <button class="player-btn" onclick="closePlayer()" title="Tutup">✕</button>
         </div>
         <div class="player-container">
             <iframe id="playerIframe" allowfullscreen allow="autoplay; encrypted-media"></iframe>
@@ -213,8 +250,8 @@
             pin: localStorage.getItem('smartHafizPIN') || '1234',
             driveScriptUrl: 'https://script.google.com/macros/s/AKfycbztHEosCVhPgBmmNkrP5QFjkCixNeQQO5RquR1t-w0eklc4KwnPc3fvH3HOTkdbFN-Nrg/exec',
             MAX_RETRIES: 3,
-            RETRY_DELAY: 3000, // 3 detik antar retry
-            TIMEOUT: 45000 // 45 detik timeout
+            RETRY_DELAY: 3000,
+            TIMEOUT: 45000
         };
 
         // ===== STATE =====
@@ -224,54 +261,42 @@
         let currentCategory = null;
         let currentFolder = null;
         let downloadedVideos = JSON.parse(localStorage.getItem('downloadedVideos') || '[]');
+        let hafizPoints = parseInt(localStorage.getItem('hafizPoints') || '0');
+        let dailyJuz = parseInt(localStorage.getItem('dailyJuz') || '1');
+        let videosWatched = parseInt(localStorage.getItem('videosWatched') || '0');
         let toastTimeout = null;
         let syncInProgress = false;
-        let syncAbortController = null;
 
         // ===== INIT =====
         document.addEventListener('DOMContentLoaded', function() {
             loadData();
-            
+            updateRewardBadge();
             document.getElementById('lockPassword').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') enterApp();
             });
             document.getElementById('lockPassword').focus();
-            
-            // Auto sync setelah 2 detik
-            setTimeout(() => {
-                if (dataNeedsSync()) {
-                    autoSync();
-                }
-            }, 2000);
+            setTimeout(() => { if (dataNeedsSync()) autoSync(); }, 2000);
         });
 
-        // ===== LOAD DATA =====
         function loadData() {
             const cached = localStorage.getItem('smartHafizContent');
-            
             if (cached) {
                 try {
                     const parsed = JSON.parse(cached);
                     if (isValidFormat(parsed)) {
                         CONTENT = parsed;
-                        console.log('✅ Cache loaded');
                         updateHeaderStatus('✅ Data siap');
                         return;
                     }
-                } catch(e) {
-                    console.error('Cache corrupt');
-                }
+                } catch(e) { console.error('Cache corrupt'); }
             }
-            
             CONTENT = getEmptyContent();
             updateHeaderStatus('⚠️ Perlu sync');
         }
 
         function isValidFormat(data) {
             for (let key in data) {
-                if (data[key] && data[key].folders && Object.keys(data[key].folders).length > 0) {
-                    return true;
-                }
+                if (data[key] && data[key].folders && Object.keys(data[key].folders).length > 0) return true;
             }
             return false;
         }
@@ -279,13 +304,7 @@
         function dataNeedsSync() {
             const cached = localStorage.getItem('smartHafizContent');
             if (!cached) return true;
-            
-            try {
-                const parsed = JSON.parse(cached);
-                return !isValidFormat(parsed);
-            } catch(e) {
-                return true;
-            }
+            try { return !isValidFormat(JSON.parse(cached)); } catch(e) { return true; }
         }
 
         function getEmptyContent() {
@@ -294,126 +313,57 @@
                 cerita: { title: 'CERITA', icon: '📚', color: '#7b1fa2', totalVideos: 0, folders: {} },
                 lagu: { title: 'MENYANYI YUK', icon: '🎵', color: '#e65100', totalVideos: 0, folders: {} },
                 film: { title: 'FILM', icon: '🎬', color: '#c62828', totalVideos: 0, folders: {} },
-                akhlaq: { title: 'AKHLAQ TERPUJI', icon: '', color: '#ad1457', totalVideos: 0, folders: {} },
+                akhlaq: { title: 'AKHLAQ TERPUJI', icon: '🌸', color: '#ad1457', totalVideos: 0, folders: {} },
                 pengetahuan: { title: 'PENGETAHUAN', icon: '🧠', color: '#1565c0', totalVideos: 0, folders: {} }
             };
         }
 
-        // ===== SYNC DENGAN RETRY =====
+        // ===== SYNC =====
         async function autoSync() {
             if (syncInProgress) return;
             syncInProgress = true;
-            
-            showSyncOverlay('🔄 Auto Sync', 'Menghubungi server...');
-            
             for (let attempt = 1; attempt <= CONFIG.MAX_RETRIES; attempt++) {
-                updateSyncStatus(`Percobaan ${attempt}/${CONFIG.MAX_RETRIES}...`, (attempt / CONFIG.MAX_RETRIES) * 100);
-                updateSyncAttempt(attempt);
-                
                 try {
                     const success = await fetchWithRetry(CONFIG.driveScriptUrl, CONFIG.TIMEOUT);
-                    
-                    if (success) {
-                        hideSyncOverlay();
-                        syncInProgress = false;
-                        showToast('✅ Sync berhasil!');
-                        return;
-                    }
+                    if (success) { syncInProgress = false; showToast('✅ Sync berhasil!'); return; }
                 } catch (error) {
-                    console.warn(`⚠️ Attempt ${attempt} failed:`, error.message);
-                    updateSyncStatus(`Gagal: ${error.message}`, (attempt / CONFIG.MAX_RETRIES) * 100);
-                    
-                    if (attempt < CONFIG.MAX_RETRIES) {
-                        await sleep(CONFIG.RETRY_DELAY);
-                    }
+                    if (attempt < CONFIG.MAX_RETRIES) await new Promise(r => setTimeout(r, CONFIG.RETRY_DELAY));
                 }
             }
-            
-            // Semua retry gagal
-            hideSyncOverlay();
             syncInProgress = false;
             updateHeaderStatus('❌ Sync gagal');
-            showToast('⚠️ Sync gagal. Coba manual.');
         }
 
         function manualSync() {
-            if (syncInProgress) {
-                showToast('⏳ Sync sedang berjalan...');
-                return;
-            }
+            if (syncInProgress) { showToast('⏳ Sync berjalan...'); return; }
+            showToast('🔄 Syncing...');
             autoSync();
         }
 
         async function fetchWithRetry(url, timeout) {
-            syncAbortController = new AbortController();
-            const timeoutId = setTimeout(() => syncAbortController.abort(), timeout);
-            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
             try {
-                const response = await fetch(url, {
-                    signal: syncAbortController.signal,
-                    cache: 'no-store'
-                });
+                const response = await fetch(url, { signal: controller.signal, cache: 'no-store' });
                 clearTimeout(timeoutId);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const result = await response.json();
-                
                 if (result.success && result.data) {
                     CONTENT = result.data;
                     localStorage.setItem('smartHafizContent', JSON.stringify(CONTENT));
                     localStorage.setItem('smartHafizContentTime', Date.now().toString());
-                    
                     const total = countTotalVideos();
                     updateHeaderStatus(`✅ ${total} video`);
-                    
-                    // Re-render
                     if (currentPage === 'home') renderHome();
                     else if (currentPage === 'category') renderCategory(currentCategory);
                     else if (currentPage === 'folder') renderFolder(currentCategory, currentFolder);
-                    
                     return true;
-                } else {
-                    throw new Error('Invalid response format');
                 }
+                throw new Error('Invalid response');
             } catch (error) {
                 clearTimeout(timeoutId);
                 throw error;
             }
-        }
-
-        function cancelSync() {
-            if (syncAbortController) {
-                syncAbortController.abort();
-            }
-            hideSyncOverlay();
-            syncInProgress = false;
-            showToast('Sync dibatalkan');
-        }
-
-        function showSyncOverlay(title, status) {
-            document.getElementById('syncTitle').textContent = title;
-            document.getElementById('syncStatus').textContent = status;
-            document.getElementById('syncOverlay').classList.add('active');
-        }
-
-        function hideSyncOverlay() {
-            document.getElementById('syncOverlay').classList.remove('active');
-        }
-
-        function updateSyncStatus(status, progress) {
-            document.getElementById('syncStatus').textContent = status;
-            document.getElementById('syncProgressBar').style.width = progress + '%';
-        }
-
-        function updateSyncAttempt(attempt) {
-            document.getElementById('syncAttempt').textContent = `Percobaan: ${attempt}/${CONFIG.MAX_RETRIES}`;
-        }
-
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
         }
 
         function countTotalVideos() {
@@ -432,13 +382,31 @@
             if (el) el.textContent = status;
         }
 
+        function updateRewardBadge() {
+            const badge = document.getElementById('rewardBadge');
+            const points = document.getElementById('rewardPoints');
+            if (hafizPoints > 0) {
+                badge.style.display = 'flex';
+                points.textContent = hafizPoints;
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function addPoints(points) {
+            hafizPoints += points;
+            localStorage.setItem('hafizPoints', hafizPoints.toString());
+            updateRewardBadge();
+            showToast(`⭐ +${points} poin! Total: ${hafizPoints}`);
+        }
+
         // ===== NAVIGASI =====
         function enterApp() {
             if (document.getElementById('lockPassword').value === CONFIG.pin) {
                 document.getElementById('lockScreen').classList.add('hidden');
                 document.getElementById('mainApp').classList.add('active');
                 renderHome();
-                showToast('✅ Selamat datang!');
+                showToast('🌟 Selamat datang, Anak Hebat!');
             } else {
                 showToast('❌ PIN salah');
                 document.getElementById('lockPassword').value = '';
@@ -449,13 +417,12 @@
             navigationStack.push({ page: currentPage, category: currentCategory, folder: currentFolder });
             currentPage = page;
             updateNavActive();
-            
             switch(page) {
                 case 'home': renderHome(); break;
                 case 'category': currentCategory = data.category; renderCategory(data.category); break;
                 case 'folder': currentCategory = data.category; currentFolder = data.folder; renderFolder(data.category, data.folder); break;
                 case 'videoDetail': showVideoDetail(data.category, data.folder, data.itemId); break;
-                case 'downloads': renderDownloads(); break;
+                case 'rewards': renderRewards(); break;
                 case 'settings': renderSettings(); break;
                 default: renderHome();
             }
@@ -468,11 +435,10 @@
                 currentCategory = prev.category;
                 currentFolder = prev.folder;
                 updateNavActive();
-                
                 if (currentPage === 'home') renderHome();
                 else if (currentPage === 'category') renderCategory(currentCategory);
                 else if (currentPage === 'folder') renderFolder(currentCategory, currentFolder);
-                else if (currentPage === 'downloads') renderDownloads();
+                else if (currentPage === 'rewards') renderRewards();
                 else if (currentPage === 'settings') renderSettings();
             } else renderHome();
         }
@@ -482,151 +448,130 @@
             const navMap = { 
                 'home': 'navHome', 
                 'category': currentCategory === 'mengaji' ? 'navMengaji' : (currentCategory === 'cerita' ? 'navCerita' : 'navHome'),
-                'folder': 'navMengaji',
-                'videoDetail': 'navMengaji',
-                'downloads': 'navDownloads', 
-                'settings': 'navSettings' 
+                'folder': 'navMengaji', 'videoDetail': 'navMengaji', 'rewards': 'navRewards', 'settings': 'navSettings' 
             };
-            const navId = navMap[currentPage];
-            if (navId) document.getElementById(navId).classList.add('active');
+            if (navMap[currentPage]) document.getElementById(navMap[currentPage]).classList.add('active');
         }
 
-        // ===== RENDER HOME =====
+        // ===== RENDER HOME - GENIUS KIDS STYLE =====
         function renderHome() {
-            navigationStack = [];
-            currentCategory = null;
-            currentFolder = null;
-            
+            navigationStack = []; currentCategory = null; currentFolder = null;
             let totalVideos = 0, totalFolders = 0;
-            let categoryHTML = '';
             const colorMap = { 'mengaji': '#1a7a4c', 'cerita': '#7b1fa2', 'lagu': '#e65100', 'film': '#c62828', 'akhlaq': '#ad1457', 'pengetahuan': '#1565c0' };
+            const categoryClass = { 'mengaji': 'mengaji', 'cerita': 'cerita', 'lagu': 'mandarin', 'film': 'film', 'akhlaq': 'ipa', 'pengetahuan': 'matematika' };
             
+            let categoryHTML = '';
             for (let key in CONTENT) {
                 const cat = CONTENT[key];
                 const catVideos = cat.totalVideos || 0;
                 const catFolders = Object.keys(cat.folders || {}).length;
-                totalVideos += catVideos;
-                totalFolders += catFolders;
-                
-                categoryHTML += `<div class="category-card" onclick="navigateTo('category', {category: '${key}'})">
+                totalVideos += catVideos; totalFolders += catFolders;
+                categoryHTML += `<div class="category-card ${categoryClass[key] || 'mengaji'}" onclick="navigateTo('category', {category: '${key}'})">
                     <div class="category-icon" style="background:${colorMap[key] || '#1a7a4c'};">${cat.icon || '📁'}</div>
                     <div class="category-name">${cat.title}</div>
                     <div class="category-count">${catVideos} video • ${catFolders} folder</div>
                 </div>`;
             }
 
-            let alertHTML = '';
-            if (totalVideos === 0) {
-                alertHTML = `
-                    <div class="alert-box error">
-                        <h4>❌ Data Kosong</h4>
-                        <p>Belum ada video. Klik sync untuk mengambil data.</p>
-                        <button onclick="manualSync()">🔄 Sync Sekarang</button>
-                    </div>
-                `;
-            }
-
-            let debugHTML = `
-                <div class="debug-panel">
-                    <strong>📊 Debug Info:</strong>
-                    Total: ${totalVideos} video • ${totalFolders} folder<br>
-                    Cache: ${localStorage.getItem('smartHafizContent') ? 'Ada' : 'Kosong'}<br>
-                    <button onclick="manualSync()" style="background:#2196F3; color:white; border:none; padding:4px 10px; border-radius:4px; margin-top:6px; font-size:10px; cursor:pointer;">🔄 Sync</button>
-                    <button onclick="clearAllCache()" style="background:#f44336; color:white; border:none; padding:4px 10px; border-radius:4px; margin-top:6px; font-size:10px; cursor:pointer;">🗑️ Clear</button>
-                    <button onclick="testConnection()" style="background:#ff9800; color:white; border:none; padding:4px 10px; border-radius:4px; margin-top:6px; font-size:10px; cursor:pointer;"> Test</button>
-                </div>
-            `;
+            const progressPercent = totalVideos > 0 ? Math.min((videosWatched / totalVideos) * 100, 100) : 0;
+            const juzProgress = (dailyJuz / 30) * 100;
 
             document.getElementById('appContent').innerHTML = `
-                ${alertHTML}
-                ${debugHTML}
-                <div class="storage-info">
-                    <div style="font-size: 13px; opacity: 0.9; margin-bottom: 4px;">💾 Penyimpanan</div>
-                    <div style="font-size: 20px; font-weight: bold;">${downloadedVideos.length} video tersimpan</div>
-                    <div class="storage-bar"><div class="storage-fill" style="width: ${totalVideos > 0 ? Math.min((downloadedVideos.length / totalVideos) * 100, 100) : 0}%"></div></div>
-                    <div style="font-size: 10px; opacity: 0.9;">${downloadedVideos.length} dari ${totalVideos} video</div>
+                <!-- HERO BANNER -->
+                <div class="hero-banner">
+                    <div class="hero-greeting">Halo, Anak Hebat! 👋</div>
+                    <div class="hero-name">Siap Belajar Hari Ini?</div>
+                    <div class="hero-stats">
+                        <div class="hero-stat">
+                            <div class="hero-stat-value">⭐ ${hafizPoints}</div>
+                            <div>Poin</div>
+                        </div>
+                        <div class="hero-stat">
+                            <div class="hero-stat-value">📖 Juz ${dailyJuz}</div>
+                            <div>Hari Ini</div>
+                        </div>
+                        <div class="hero-stat">
+                            <div class="hero-stat-value">🎬 ${videosWatched}</div>
+                            <div>Video</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="page-title">Menu Utama</div>
-                <div class="category-grid">${categoryHTML}</div>`;
+
+                <!-- PROGRESS CARD -->
+                <div class="progress-card">
+                    <div class="progress-title">📊 Progress Belajar Hari Ini</div>
+                    <div class="progress-bar"><div class="progress-fill" style="width: ${progressPercent}%"></div></div>
+                    <div class="progress-text">${videosWatched} dari ${totalVideos} video ditonton (${Math.round(progressPercent)}%)</div>
+                </div>
+
+                <!-- FEATURE CARDS -->
+                <div class="feature-grid">
+                    <div class="feature-card" onclick="navigateTo('category', {category: 'mengaji'})">
+                        <div class="feature-icon" style="background:#1a7a4c;"></div>
+                        <div class="feature-name">Mengaji</div>
+                    </div>
+                    <div class="feature-card" onclick="navigateTo('category', {category: 'cerita'})">
+                        <div class="feature-icon" style="background:#7b1fa2;">📚</div>
+                        <div class="feature-name">Cerita</div>
+                    </div>
+                    <div class="feature-card" onclick="navigateTo('rewards')">
+                        <div class="feature-icon" style="background:#f093fb;">🎁</div>
+                        <div class="feature-name">Hadiah</div>
+                    </div>
+                    <div class="feature-card" onclick="showDailyJuz()">
+                        <div class="feature-icon" style="background:#667eea;">📅</div>
+                        <div class="feature-name">Juz Harian</div>
+                    </div>
+                </div>
+
+                <!-- CATEGORY SECTION -->
+                <div class="category-section">
+                    <div class="section-title">🎓 Menu Belajar</div>
+                    <div class="category-grid">${categoryHTML || '<div class="empty-state"><div class="empty-icon">📦</div><p>Belum ada data. Klik 🔄 untuk sync.</p></div>'}</div>
+                </div>
+
+                <!-- DEBUG PANEL -->
+                <div class="debug-panel">
+                    <strong>📊 Debug:</strong> ${totalVideos} video • ${totalFolders} folder<br>
+                    <button onclick="manualSync()" style="background:#2196F3; color:white; border:none; padding:4px 10px; border-radius:4px; margin-top:6px; font-size:10px; cursor:pointer;">🔄 Sync</button>
+                    <button onclick="clearAllCache()" style="background:#f44336; color:white; border:none; padding:4px 10px; border-radius:4px; margin-top:6px; font-size:10px; cursor:pointer;">🗑️ Clear</button>
+                </div>`;
         }
 
-        // ===== TEST CONNECTION =====
-        async function testConnection() {
-            showToast('🔍 Testing connection...');
-            updateHeaderStatus('🔍 Testing...');
-            
-            try {
-                const response = await fetch(CONFIG.driveScriptUrl, {
-                    method: 'HEAD',
-                    mode: 'no-cors'
-                });
-                
-                showToast('✅ Server reachable');
-                updateHeaderStatus('✅ Connected');
-            } catch (error) {
-                showToast('❌ Server unreachable');
-                updateHeaderStatus('❌ No connection');
-                console.error('Connection test failed:', error);
-            }
+        function showDailyJuz() {
+            showToast(`📖 Hari ini: Juz ${dailyJuz} dari 30`);
+            addPoints(5);
         }
 
         // ===== RENDER CATEGORY =====
         function renderCategory(categoryKey) {
             const category = CONTENT[categoryKey];
             if (!category) { showToast('Kategori tidak ditemukan'); return; }
-            
             const folders = category.folders || {};
             const folderNames = Object.keys(folders).sort();
             
-            let debugHTML = `
-                <div class="debug-panel" style="margin-bottom: 10px;">
-                    📊 ${category.totalVideos || 0} video • ${folderNames.length} folder
-                    ${folderNames.length === 0 ? '<br><small style="color:#f44336;">⚠️ Folder kosong! Klik Sync.</small>' : ''}
-                </div>
-            `;
-            
-            let foldersHTML = '';
-            if (folderNames.length > 0) {
-                foldersHTML = folderNames.map((folderName) => {
-                    const folder = folders[folderName];
-                    const count = folder.items ? folder.items.length : 0;
-                    return `<div class="folder-item" onclick="navigateTo('folder', {category: '${categoryKey}', folder: '${folderName.replace(/'/g, "\\'")}'})">
-                        <div class="folder-icon">📁</div>
-                        <div class="folder-text">
-                            <div class="folder-name">${folderName}</div>
-                            <div class="folder-count">${count} video</div>
-                        </div>
-                        <span style="font-size: 16px; color: var(--text-light);">›</span>
-                    </div>`;
-                }).join('');
-            } else {
-                foldersHTML = `
-                    <div class="alert-box">
-                        <h4>📭 Folder Kosong</h4>
-                        <p>Kategori ini belum ada datanya.</p>
-                        <button onclick="manualSync()">🔄 Sync</button>
-                    </div>
-                `;
-            }
+            let foldersHTML = folderNames.length > 0 ? folderNames.map((folderName) => {
+                const folder = folders[folderName];
+                return `<div class="folder-item" onclick="navigateTo('folder', {category: '${categoryKey}', folder: '${folderName.replace(/'/g, "\\'")}'})">
+                    <div class="folder-icon"></div>
+                    <div class="folder-text"><div class="folder-name">${folderName}</div><div class="folder-count">${folder.items.length} video</div></div>
+                    <span style="font-size: 16px; color: var(--text-light);">›</span>
+                </div>`;
+            }).join('') : `<div class="empty-state"><div class="empty-icon">📭</div><p>Belum ada folder. Klik 🔄 untuk sync.</p></div>`;
 
             document.getElementById('appContent').innerHTML = `
                 <button class="back-btn" onclick="goBack()">← Kembali</button>
                 <div class="breadcrumb"><span onclick="navigateTo('home')">Beranda</span> / ${category.title}</div>
                 <div class="page-title">${category.icon || '📁'} ${category.title}</div>
-                ${debugHTML}
+                <div style="font-size: 12px; color: var(--text-light); margin-bottom: 12px; padding: 0 4px;">📊 ${category.totalVideos || 0} video dalam ${folderNames.length} folder</div>
                 <div class="folder-list">${foldersHTML}</div>`;
         }
 
         // ===== RENDER FOLDER =====
         function renderFolder(categoryKey, folderName) {
             const category = CONTENT[categoryKey];
-            if (!category || !category.folders[folderName]) { 
-                showToast('Folder tidak ditemukan'); 
-                return; 
-            }
-            
-            const folder = category.folders[folderName];
-            const items = folder.items || [];
+            if (!category || !category.folders[folderName]) { showToast('Folder tidak ditemukan'); return; }
+            const items = category.folders[folderName].items || [];
             
             let videosHTML = items.map((item) => {
                 const isSaved = downloadedVideos.includes(item.driveId);
@@ -642,13 +587,9 @@
 
             document.getElementById('appContent').innerHTML = `
                 <button class="back-btn" onclick="navigateTo('category', {category: '${categoryKey}'})">← Kembali</button>
-                <div class="breadcrumb">
-                    <span onclick="navigateTo('home')">Beranda</span> / 
-                    <span onclick="navigateTo('category', {category: '${categoryKey}'})">${category.title}</span> / 
-                    ${folderName}
-                </div>
+                <div class="breadcrumb"><span onclick="navigateTo('home')">Beranda</span> / <span onclick="navigateTo('category', {category: '${categoryKey}'})">${category.title}</span> / ${folderName}</div>
                 <div class="page-title">📁 ${folderName}</div>
-                <div style="font-size: 11px; color: var(--text-light); margin-bottom: 10px; padding: 0 4px;">📊 ${items.length} video</div>
+                <div style="font-size: 12px; color: var(--text-light); margin-bottom: 12px; padding: 0 4px;">📊 ${items.length} video</div>
                 <div class="video-list">${videosHTML || '<div class="empty-state"><p>Belum ada video</p></div>'}</div>`;
         }
 
@@ -666,39 +607,74 @@
 
             document.getElementById('appContent').innerHTML = `
                 <button class="back-btn" onclick="navigateTo('folder', {category: '${categoryKey}', folder: '${safeFolder}'})">← Kembali</button>
-                <div class="breadcrumb">
-                    <span onclick="navigateTo('home')">Beranda</span> / 
-                    <span onclick="navigateTo('category', {category: '${categoryKey}'})">${category.title}</span> / 
-                    <span onclick="navigateTo('folder', {category: '${categoryKey}', folder: '${safeFolder}'})">${folderName}</span>
-                </div>
+                <div class="breadcrumb"><span onclick="navigateTo('home')">Beranda</span> / <span onclick="navigateTo('category', {category: '${categoryKey}'})">${category.title}</span> / <span onclick="navigateTo('folder', {category: '${categoryKey}', folder: '${safeFolder}'})">${folderName}</span></div>
                 <div class="video-detail-card">
                     <div class="video-detail-icon">🎬</div>
                     <h3 class="video-detail-title">${item.name}</h3>
                     <div class="video-folder-tag">📁 ${item.folder || folderName}</div>
                     <p class="video-detail-desc">${item.desc || 'Video edukasi Islami'}</p>
                     ${item.size ? `<div class="video-size-badge">📦 ${item.size}</div>` : ''}
-                    <button class="btn-action btn-primary" onclick="streamVideo('${driveId}', '${safeName}')">▶️ Streaming Langsung</button>
-                    <button class="btn-action btn-secondary" onclick="downloadVideo('${driveId}', '${safeName}')">️ Download</button>
+                    <button class="btn-action btn-primary" onclick="streamVideo('${driveId}', '${safeName}', '${categoryKey}', '${safeFolder}', '${item.id}')">▶️ Streaming Langsung (Lanskap)</button>
+                    <button class="btn-action btn-secondary" onclick="downloadVideo('${driveId}', '${safeName}')">⬇️ Download</button>
                     <button class="btn-action btn-download ${isSaved ? 'downloaded' : ''}" onclick="${isSaved ? `deleteVideo('${driveId}', '${safeName}', '${categoryKey}', '${safeFolder}')` : `addToDownloadedList('${driveId}', '${safeName}')`}">${isSaved ? '✓ Tersimpan (Hapus)' : '📥 Simpan ke Daftar'}</button>
                 </div>`;
         }
 
-        // ===== VIDEO PLAYER =====
-        function streamVideo(driveId, title) {
+        // ===== VIDEO PLAYER DENGAN PREV/NEXT =====
+        function streamVideo(driveId, title, categoryKey, folderName, itemId) {
             document.getElementById('playerTitle').textContent = title;
             document.getElementById('playerIframe').src = `https://drive.google.com/file/d/${driveId}/preview`;
+            
+            const category = CONTENT[categoryKey];
+            if (category && category.folders && category.folders[folderName]) {
+                const items = category.folders[folderName].items;
+                const currentIndex = items.findIndex(i => i.id === itemId);
+                
+                const prevBtn = document.getElementById('prevVideoBtn');
+                const nextBtn = document.getElementById('nextVideoBtn');
+                
+                if (currentIndex > 0) {
+                    const prevItem = items[currentIndex - 1];
+                    prevBtn.style.display = 'flex';
+                    prevBtn.onclick = () => streamVideo(prevItem.driveId, prevItem.name, categoryKey, folderName, prevItem.id);
+                } else prevBtn.style.display = 'none';
+                
+                if (currentIndex < items.length - 1) {
+                    const nextItem = items[currentIndex + 1];
+                    nextBtn.style.display = 'flex';
+                    nextBtn.onclick = () => streamVideo(nextItem.driveId, nextItem.name, categoryKey, folderName, nextItem.id);
+                } else nextBtn.style.display = 'none';
+            }
+            
             document.getElementById('streamingPlayer').classList.add('active');
+            
+            setTimeout(() => {
+                const iframe = document.getElementById('playerIframe');
+                if (iframe.requestFullscreen) iframe.requestFullscreen().catch(() => {});
+                else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen();
+            }, 300);
+            
+            // Tambah poin & counter
+            videosWatched++;
+            localStorage.setItem('videosWatched', videosWatched.toString());
+            addPoints(10);
         }
 
         function closePlayer() {
             document.getElementById('playerIframe').src = '';
             document.getElementById('streamingPlayer').classList.remove('active');
+            document.getElementById('prevVideoBtn').style.display = 'none';
+            document.getElementById('nextVideoBtn').style.display = 'none';
+            if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
         }
 
         function toggleFullscreen() {
-            const iframe = document.getElementById('playerIframe');
-            if (iframe.requestFullscreen) iframe.requestFullscreen();
-            else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen();
+            if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+            else {
+                const iframe = document.getElementById('playerIframe');
+                if (iframe.requestFullscreen) iframe.requestFullscreen();
+                else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen();
+            }
         }
 
         // ===== DOWNLOAD =====
@@ -712,7 +688,8 @@
                 downloadedVideos.push(driveId);
                 localStorage.setItem('downloadedVideos', JSON.stringify(downloadedVideos));
                 showToast(`✅ ${name} ditambahkan`);
-            } else showToast('️ Sudah ada');
+                addPoints(5);
+            } else showToast('ℹ️ Sudah ada');
         }
 
         function deleteVideo(driveId, name, categoryKey, folderName) {
@@ -725,95 +702,104 @@
             }
         }
 
-        function renderDownloads() {
-            let html = '<button class="back-btn" onclick="goBack()">← Kembali</button><div class="page-title">💾 Video Tersimpan</div>';
-            if (downloadedVideos.length === 0) {
-                html += `<div class="empty-state"><div class="empty-icon">📭</div><h3>Belum ada</h3><p>Klik "Download"</p></div>`;
-            } else {
-                downloadedVideos.forEach(driveId => {
-                    let info = { name: 'Video', category: '', folder: '' };
-                    for (let catKey in CONTENT) {
-                        const folders = CONTENT[catKey].folders || {};
-                        for (let folderName in folders) {
-                            const item = folders[folderName].items.find(i => i.driveId === driveId);
-                            if (item) { info = { name: item.name, category: CONTENT[catKey].title, folder: folderName }; break; }
-                        }
-                        if (info.name !== 'Video') break;
-                    }
-                    html += `<div class="video-item" style="margin-bottom: 6px;">
-                        <div class="video-thumb" style="background:var(--primary);">🎬</div>
-                        <div class="video-text"><div class="video-title">${info.name}</div><div class="video-meta">${info.category} • ${info.folder}</div></div>
-                        <button class="btn-action" style="width: auto; padding: 6px 12px; font-size: 11px; margin: 0;" onclick="streamVideo('${driveId}', '${info.name.replace(/'/g, "\\'")}')">▶️</button>
-                    </div>`;
-                });
-                html += `<button class="btn-action btn-danger" style="margin-top: 10px;" onclick="clearAllDownloads()">️ Hapus Semua</button>`;
-            }
-            document.getElementById('appContent').innerHTML = html;
+        // ===== REWARDS PAGE =====
+        function renderRewards() {
+            const rewards = [
+                { points: 50, reward: '🎨 Sticker Digital', icon: '🎨' },
+                { points: 100, reward: '📚 Cerita Premium', icon: '📚' },
+                { points: 200, reward: '🎮 Game Edukasi', icon: '🎮' },
+                { points: 500, reward: '🏆 Sertifikat Hafiz', icon: '🏆' }
+            ];
+
+            let rewardsHTML = rewards.map(r => `
+                <div class="settings-item" style="${hafizPoints >= r.points ? 'opacity:1;' : 'opacity:0.5;'}">
+                    <div class="settings-item-left">
+                        <div class="settings-item-icon" style="background:#fff3e0; font-size:24px;">${r.icon}</div>
+                        <div class="settings-item-text">
+                            <h4>${r.reward}</h4>
+                            <p>⭐ ${r.points} poin ${hafizPoints >= r.points ? '✓ Bisa ditukar' : `(Kurang ${r.points - hafizPoints} poin)`}</p>
+                        </div>
+                    </div>
+                    ${hafizPoints >= r.points ? '<button class="btn-action" style="width:auto; padding:8px 16px; font-size:12px; margin:0; background:#4CAF50; color:white;" onclick="claimReward(\'' + r.reward + '\', ' + r.points + ')">Tukar</button>' : ''}
+                </div>
+            `).join('');
+
+            document.getElementById('appContent').innerHTML = `
+                <button class="back-btn" onclick="goBack()">← Kembali</button>
+                <div class="page-title"> Hadiah & Rewards</div>
+                
+                <div class="hero-banner" style="margin-bottom: 16px;">
+                    <div class="hero-greeting">Poin Kamu</div>
+                    <div class="hero-name" style="font-size: 36px;">⭐ ${hafizPoints}</div>
+                    <div class="hero-stats">
+                        <div class="hero-stat"><div class="hero-stat-value">🎬 ${videosWatched}</div><div>Video</div></div>
+                        <div class="hero-stat"><div class="hero-stat-value">📖 Juz ${dailyJuz}</div><div>Harian</div></div>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <div style="padding: 14px 16px; background: #f0f0f0; font-size: 13px; font-weight: 600;">🎯 Cara Dapat Poin:</div>
+                    <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e8f5e9;">🎬</div><div class="settings-item-text"><h4>Tonton Video</h4><p>+10 poin setiap video</p></div></div></div>
+                    <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd;"></div><div class="settings-item-text"><h4>Download Video</h4><p>+5 poin setiap download</p></div></div></div>
+                    <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0;"></div><div class="settings-item-text"><h4>Juz Harian</h4><p>+5 poin setiap cek juz</p></div></div></div>
+                </div>
+
+                <div class="settings-group">
+                    <div style="padding: 14px 16px; background: #f0f0f0; font-size: 13px; font-weight: 600;">🎁 Tukar Poin:</div>
+                    ${rewardsHTML}
+                </div>`;
         }
 
-        function clearAllDownloads() {
-            if (confirm('Hapus semua?')) {
-                downloadedVideos = [];
-                localStorage.setItem('downloadedVideos', '[]');
-                renderDownloads();
-                showToast('✅ Dihapus');
+        function claimReward(reward, points) {
+            if (confirm(`Tukar ${points} poin untuk "${reward}"?`)) {
+                hafizPoints -= points;
+                localStorage.setItem('hafizPoints', hafizPoints.toString());
+                updateRewardBadge();
+                showToast(`🎉 Berhasil menukar: ${reward}!`);
+                renderRewards();
             }
         }
 
         // ===== SETTINGS =====
         function renderSettings() {
-            const cacheInfo = localStorage.getItem('smartHafizContent') ? 'Ada' : 'Kosong';
-            const cacheTime = localStorage.getItem('smartHafizContentTime');
-            const cacheAge = cacheTime ? Math.round((Date.now() - parseInt(cacheTime)) / 60000) + ' menit' : '-';
-            
             document.getElementById('appContent').innerHTML = `
                 <button class="back-btn" onclick="goBack()">← Kembali</button>
                 <div class="page-title">⚙️ Pengaturan</div>
-                
-                <div class="debug-panel" style="margin-bottom: 12px;">
-                    <strong> Info Sistem:</strong>
-                    Cache: ${cacheInfo}<br>
-                    Umur cache: ${cacheAge}<br>
-                    Total video: ${countTotalVideos()}<br>
-                    URL: ${CONFIG.driveScriptUrl.substring(0, 50)}...
-                </div>
-                
                 <div class="settings-group">
-                    <div class="settings-item" onclick="manualSync()">
-                        <div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0; color:#e65100;">🔄</div><div class="settings-item-text"><h4>Manual Sync</h4><p>Ambil data dari Drive (retry 3x)</p></div></div><span>›</span>
-                    </div>
-                    <div class="settings-item" onclick="testConnection()">
-                        <div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd; color:#1565c0;">🔍</div><div class="settings-item-text"><h4>Test Koneksi</h4><p>Cek server reachable</p></div></div><span>›</span>
-                    </div>
-                    <div class="settings-item" onclick="clearAllCache()">
-                        <div class="settings-item-left"><div class="settings-item-icon" style="background:#ffebee; color:#c62828;">🗑️</div><div class="settings-item-text"><h4>Clear All Cache</h4><p>Hapus semua data lokal</p></div></div><span>›</span>
-                    </div>
-                    <div class="settings-item" onclick="navigateTo('downloads')">
-                        <div class="settings-item-left"><div class="settings-item-icon" style="background:#f3e5f5; color:#7b1fa2;">💾</div><div class="settings-item-text"><h4>Download</h4><p>${downloadedVideos.length} video</p></div></div><span>›</span>
-                    </div>
-                    <div class="settings-item" onclick="clearAllDownloads()">
-                        <div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0; color:#e65100;">🗑️</div><div class="settings-item-text"><h4>Hapus Download</h4><p>Reset daftar</p></div></div><span>›</span>
-                    </div>
+                    <div class="settings-item" onclick="manualSync()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0; color:#e65100;">🔄</div><div class="settings-item-text"><h4>Manual Sync</h4><p>Ambil data dari Drive</p></div></div><span>›</span></div>
+                    <div class="settings-item" onclick="clearAllCache()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#ffebee; color:#c62828;">🗑️</div><div class="settings-item-text"><h4>Clear Cache</h4><p>Hapus data lokal</p></div></div><span>›</span></div>
+                    <div class="settings-item" onclick="resetProgress()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd; color:#1565c0;">🔄</div><div class="settings-item-text"><h4>Reset Progress</h4><p>Reset poin & video</p></div></div><span>›</span></div>
                 </div>
-                <div style="text-align:center; padding:14px; color:var(--text-light); font-size:10px;">Smart Hafiz v8.0<br>Auto Retry Sync<br>© 2024</div>`;
+                <div style="text-align:center; padding:14px; color:var(--text-light); font-size:10px;">Smart Hafiz v10.0<br>Genius Kids Style<br>© 2024</div>`;
+        }
+
+        function resetProgress() {
+            if (confirm('Reset semua progress? Poin akan kembali ke 0.')) {
+                hafizPoints = 0;
+                videosWatched = 0;
+                dailyJuz = 1;
+                localStorage.setItem('hafizPoints', '0');
+                localStorage.setItem('videosWatched', '0');
+                localStorage.setItem('dailyJuz', '1');
+                updateRewardBadge();
+                showToast('🔄 Progress direset');
+                renderHome();
+            }
         }
 
         function clearAllCache() {
-            if (confirm('Hapus SEMUA cache? Data akan di-fetch ulang.')) {
+            if (confirm('Hapus SEMUA cache?')) {
                 localStorage.removeItem('smartHafizContent');
                 localStorage.removeItem('smartHafizContentTime');
                 CONTENT = getEmptyContent();
-                showToast('️ Cache dihapus');
+                showToast('🗑️ Cache dihapus');
                 renderHome();
             }
         }
 
         // ===== UTILITIES =====
         history.pushState(null, null, location.href);
-        window.addEventListener('popstate', () => {
-            history.pushState(null, null, location.href);
-            if (currentPage !== 'home') goBack();
-        });
+        window.addEventListener('popstate', () => { history.pushState(null, null, location.href); if (currentPage !== 'home') goBack(); });
         document.addEventListener('contextmenu', e => e.preventDefault());
 
         function showToast(message) {
