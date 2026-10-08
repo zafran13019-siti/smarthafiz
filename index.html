@@ -117,6 +117,44 @@
         .btn-gold { background: gold; color: #000; }
         
         .video-detail-card { background: white; border-radius: 16px; padding: 20px; box-shadow: var(--shadow); text-align: center; margin-bottom: 16px; }
+        
+        /* VIDEO THUMBNAIL STYLING */
+        .video-thumbnail-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto 16px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .video-thumbnail {
+            width: 100%;
+            height: 225px;
+            object-fit: cover;
+            display: block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .video-play-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70px;
+            height: 70px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+        }
+        .video-thumbnail-container:hover .video-play-overlay {
+            transform: translate(-50%, -50%) scale(1.1);
+            background: white;
+        }
         .video-detail-icon { font-size: 60px; margin-bottom: 12px; }
         .video-detail-title { font-size: 18px; margin-bottom: 8px; line-height: 1.3; }
         .video-detail-desc { color: var(--text-light); margin-bottom: 16px; font-size: 13px; }
@@ -185,7 +223,7 @@
     <div id="lockScreen">
         <div class="lock-logo">📖</div>
         <div class="lock-title">Smart Hafiz</div>
-        <div class="lock-subtitle">Belajar Seru Setiap Hari! 🌟</div>
+        <div class="lock-subtitle">Belajar Seru Setiap Hari! </div>
         <input type="password" class="lock-input" id="lockPassword" placeholder="PIN (1234)" maxlength="6" inputmode="numeric">
         <button class="lock-btn" onclick="enterApp()">🔓 Masuk</button>
         <div style="color: rgba(255,255,255,0.6); font-size: 11px; margin-top: 15px;">PIN: 1234</div>
@@ -202,21 +240,21 @@
     <div id="mainApp">
         <div class="app-header">
             <div class="header-left">
-                <div class="header-logo"></div>
+                <div class="header-logo">📖</div>
                 <div style="min-width: 0; flex: 1;">
                     <div class="header-title">Smart Hafiz</div>
                     <div class="header-subtitle" id="headerStatus">Belajar Seru!</div>
                 </div>
             </div>
             <div class="header-right">
-                <button class="header-btn" onclick="manualSync()" title="Sync">🔄</button>
+                <button class="header-btn" onclick="manualSync()" title="Sync"></button>
                 <button class="header-btn" onclick="navigateTo('settings')" title="Settings">⚙️</button>
             </div>
         </div>
         <div class="app-content" id="appContent"></div>
         <div class="bottom-nav">
             <button class="nav-item active" onclick="navigateTo('home')" id="navHome"><span class="nav-icon">🏠</span><span class="nav-label">Beranda</span></button>
-            <button class="nav-item" onclick="navigateTo('category', {category: 'mengaji'})" id="navMengaji"><span class="nav-icon"></span><span class="nav-label">Mengaji</span></button>
+            <button class="nav-item" onclick="navigateTo('category', {category: 'mengaji'})" id="navMengaji"><span class="nav-icon">📖</span><span class="nav-label">Mengaji</span></button>
             <button class="nav-item" onclick="navigateTo('category', {category: 'cerita'})" id="navCerita"><span class="nav-icon">📚</span><span class="nav-label">Cerita</span></button>
             <button class="nav-item" onclick="navigateTo('rewards')" id="navRewards"><span class="nav-icon">🎁</span><span class="nav-label">Hadiah</span></button>
             <button class="nav-item" onclick="navigateTo('settings')" id="navSettings"><span class="nav-icon">⚙️</span><span class="nav-label">Lainnya</span></button>
@@ -247,9 +285,9 @@
         
         const REWARDS_LIST = [
             { id: 'sticker_pack', name: '🎨 Paket Stiker Premium', points: 50, icon: '🎨', description: 'Dapatkan 5 stiker eksklusif', type: 'sticker' },
-            { id: 'premium_story', name: '📚 Cerita Premium', points: 100, icon: '📚', description: 'Akses 10 cerita premium', type: 'content' },
+            { id: 'premium_story', name: '📚 Cerita Premium', points: 100, icon: '', description: 'Akses 10 cerita premium', type: 'content' },
             { id: 'mini_game', name: '🎮 Mini Game Edukasi', points: 200, icon: '🎮', description: 'Buka game tebak huruf hijaiyah', type: 'game' },
-            { id: 'certificate', name: '🏆 Sertifikat Hafiz', points: 500, icon: '🏆', description: 'Sertifikat digital atas nama Anda', type: 'certificate' }
+            { id: 'certificate', name: '🏆 Sertifikat Hafiz', points: 500, icon: '', description: 'Sertifikat digital atas nama Anda', type: 'certificate' }
         ];
 
         function redeemReward(rewardId) {
@@ -273,7 +311,7 @@
         function giveReward(reward) {
             switch(reward.type) {
                 case 'sticker':
-                    const newStickers = ['🌟', '🕌', '📖', '🤲', '🌙'];
+                    const newStickers = ['🌟', '🕌', '📖', '', '🌙'];
                     newStickers.forEach(sticker => { if (!stickerCollection.includes(sticker)) stickerCollection.push(sticker); });
                     localStorage.setItem('stickerCollection', JSON.stringify(stickerCollection));
                     break;
@@ -296,7 +334,7 @@
             a.download = `Sertifikat_${userName.replace(/\s+/g, '_')}.txt`;
             a.click();
             window.URL.revokeObjectURL(url);
-            showToast(' Sertifikat berhasil didownload!');
+            showToast('📥 Sertifikat berhasil didownload!');
         }
 
         // ===== SUPABASE CONFIGURATION =====
@@ -361,8 +399,8 @@
 
         function getEmptyContent() {
             return {
-                mengaji: { title: 'MENGAJI YUK', icon: '', color: '#1a7a4c', totalVideos: 0, folders: {} },
-                cerita: { title: 'CERITA', icon: '📚', color: '#7b1fa2', totalVideos: 0, folders: {} },
+                mengaji: { title: 'MENGAJI YUK', icon: '📖', color: '#1a7a4c', totalVideos: 0, folders: {} },
+                cerita: { title: 'CERITA', icon: '', color: '#7b1fa2', totalVideos: 0, folders: {} },
                 lagu: { title: 'MENYANYI YUK', icon: '🎵', color: '#e65100', totalVideos: 0, folders: {} },
                 film: { title: 'FILM', icon: '🎬', color: '#c62828', totalVideos: 0, folders: {} },
                 akhlaq: { title: 'AKHLAQ TERPUJI', icon: '🌸', color: '#ad1457', totalVideos: 0, folders: {} },
@@ -504,7 +542,7 @@
                     <div class="hero-name">Siap Belajar Hari Ini?</div>
                     <div class="hero-stats">
                         <div class="hero-stat"><div class="hero-stat-value">⭐ ${hafizPoints}</div><div>Poin</div></div>
-                        <div class="hero-stat"><div class="hero-stat-value">📖 Juz ${dailyJuz}</div><div>Hari Ini</div></div>
+                        <div class="hero-stat"><div class="hero-stat-value"> Juz ${dailyJuz}</div><div>Hari Ini</div></div>
                         <div class="hero-stat"><div class="hero-stat-value">🎬 ${videosWatched}</div><div>Video</div></div>
                     </div>
                 </div>
@@ -517,7 +555,7 @@
                     <div class="feature-card" onclick="navigateTo('category', {category: 'mengaji'})"><div class="feature-icon" style="background:#1a7a4c;"></div><div class="feature-name">Mengaji</div></div>
                     <div class="feature-card" onclick="navigateTo('category', {category: 'cerita'})"><div class="feature-icon" style="background:#7b1fa2;">📚</div><div class="feature-name">Cerita</div></div>
                     <div class="feature-card" onclick="navigateTo('rewards')"><div class="feature-icon" style="background:#f093fb;">🎁</div><div class="feature-name">Hadiah</div></div>
-                    <div class="feature-card" onclick="showDailyJuz()"><div class="feature-icon" style="background:#667eea;">📅</div><div class="feature-name">Juz Harian</div></div>
+                    <div class="feature-card" onclick="showDailyJuz()"><div class="feature-icon" style="background:#667eea;"></div><div class="feature-name">Juz Harian</div></div>
                 </div>
                 <div class="category-section">
                     <div class="section-title">🎓 Menu Belajar</div>
@@ -563,7 +601,7 @@
             let videosHTML = items.map((item) => {
                 const isSaved = downloadedVideos.includes(item.driveId);
                 return `<div class="video-item" onclick="navigateTo('videoDetail', {category: '${categoryKey}', folder: '${folderName.replace(/'/g, "\\'")}', itemId: '${item.id}'})">
-                    <div class="video-thumb" style="background:${category.color || '#1a7a4c'};"></div>
+                    <div class="video-thumb" style="background:${category.color || '#1a7a4c'};">🎬</div>
                     <div class="video-text">
                         <div class="video-title">${item.name} ${isSaved ? '<span class="badge badge-downloaded">✓</span>' : '<span class="badge badge-online">Online</span>'}</div>
                         <div class="video-meta">${item.size || ''}</div>
@@ -576,7 +614,7 @@
                 <button class="back-btn" onclick="navigateTo('category', {category: '${categoryKey}'})">← Kembali</button>
                 <div class="breadcrumb"><span onclick="navigateTo('home')">Beranda</span> / <span onclick="navigateTo('category', {category: '${categoryKey}'})">${category.title}</span> / ${folderName}</div>
                 <div class="page-title">📁 ${folderName}</div>
-                <div style="font-size: 12px; color: var(--text-light); margin-bottom: 12px; padding: 0 4px;">📊 ${items.length} video</div>
+                <div style="font-size: 12px; color: var(--text-light); margin-bottom: 12px; padding: 0 4px;"> ${items.length} video</div>
                 <div class="video-list">${videosHTML || '<div class="empty-state"><p>Belum ada video</p></div>'}</div>`;
         }
 
@@ -590,12 +628,20 @@
             const driveId = item.driveId;
             const safeName = item.name.replace(/'/g, "\\'");
             const safeFolder = folderName.replace(/'/g, "\\'");
+            
+            // Generate thumbnail URL from Google Drive
+            const thumbnailUrl = `https://drive.google.com/thumbnail?id=${driveId}&sz=w640`;
 
             document.getElementById('appContent').innerHTML = `
                 <button class="back-btn" onclick="navigateTo('folder', {category: '${categoryKey}', folder: '${safeFolder}'})">← Kembali</button>
                 <div class="breadcrumb"><span onclick="navigateTo('home')">Beranda</span> / <span onclick="navigateTo('category', {category: '${categoryKey}'})">${category.title}</span> / <span onclick="navigateTo('folder', {category: '${categoryKey}', folder: '${safeFolder}'})">${folderName}</span></div>
                 <div class="video-detail-card">
-                    <div class="video-detail-icon">🎬</div>
+                    <!-- VIDEO THUMBNAIL WITH PLAY BUTTON -->
+                    <div class="video-thumbnail-container" onclick="streamVideo('${driveId}', '${safeName}', '${categoryKey}', '${safeFolder}', '${item.id}')">
+                        <img class="video-thumbnail" src="${thumbnailUrl}" alt="${item.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 225%22%3E%3Crect fill=%22%23667eea%22 width=%22400%22 height=%22225%22/%3E%3Ctext fill=%22white%22 font-size=%2224%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3E🎬 Video%3C/text%3E%3C/svg%3E'">
+                        <div class="video-play-overlay">▶️</div>
+                    </div>
+                    
                     <h3 class="video-detail-title">${item.name}</h3>
                     <div class="video-folder-tag"> ${item.folder || folderName}</div>
                     <p class="video-detail-desc">${item.desc || 'Video edukasi Islami'}</p>
@@ -660,7 +706,7 @@
             if (confirm(`Hapus "${name}"?`)) {
                 downloadedVideos = downloadedVideos.filter(id => id !== driveId);
                 localStorage.setItem('downloadedVideos', JSON.stringify(downloadedVideos));
-                showToast('️ Dihapus');
+                showToast('🗑️ Dihapus');
                 const item = CONTENT[categoryKey]?.folders[folderName]?.items.find(i => i.driveId === driveId);
                 if (item) showVideoDetail(categoryKey, folderName, item.id);
             }
@@ -733,7 +779,7 @@
                     <div class="settings-item" onclick="promptUserName()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd;">👤</div><div class="settings-item-text"><h4>Nama Anak</h4><p>${userName}</p></div></div><span>›</span></div>
                     <div class="settings-item" onclick="manualSync()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0; color:#e65100;">🔄</div><div class="settings-item-text"><h4>Manual Sync</h4><p>Ambil data dari Drive</p></div></div><span>›</span></div>
                     <div class="settings-item" onclick="clearAllCache()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#ffebee; color:#c62828;">🗑️</div><div class="settings-item-text"><h4>Clear Cache</h4><p>Hapus data lokal</p></div></div><span>›</span></div>
-                    <div class="settings-item" onclick="resetProgress()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd; color:#1565c0;"></div><div class="settings-item-text"><h4>Reset Progress</h4><p>Reset poin & video</p></div></div><span>›</span></div>
+                    <div class="settings-item" onclick="resetProgress()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd; color:#1565c0;">🔄</div><div class="settings-item-text"><h4>Reset Progress</h4><p>Reset poin & video</p></div></div><span>›</span></div>
                 </div>
                 <div style="text-align:center; padding:14px; color:var(--text-light); font-size:10px;">Smart Hafiz v11.0<br>Belajar Seru Setiap Hari!<br>© 2024</div>`;
         }
