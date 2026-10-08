@@ -8,13 +8,22 @@
     <meta name="theme-color" content="#1a7a4c">
     <title>Smart Hafiz - Belajar Seru!</title>
     
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
         html, body { width: 100%; height: 100%; overflow: hidden; position: fixed; }
         :root { 
-            --primary: #1a7a4c; --primary-dark: #0d5c35; --secondary: #f0a500; --accent: #e74c3c;
-            --bg: #f0f4f8; --card-bg: #ffffff; --text: #333333; --text-light: #666666; 
-            --shadow: 0 4px 15px rgba(0,0,0,0.1); --radius: 16px;
+            --primary: #1a7a4c; 
+            --primary-dark: #0d5c35; 
+            --secondary: #f0a500; 
+            --accent: #e74c3c;
+            --bg: #f0f4f8; 
+            --card-bg: #ffffff; 
+            --text: #333333; 
+            --text-light: #666666; 
+            --shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            --radius: 16px;
         }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
         
@@ -49,6 +58,12 @@
         .hero-stats { display: flex; gap: 15px; margin-top: 12px; }
         .hero-stat { background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 12px; font-size: 12px; }
         .hero-stat-value { font-size: 18px; font-weight: bold; }
+        
+        .sync-status { position: fixed; top: 60px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 6px 12px; border-radius: 20px; font-size: 11px; z-index: 100; display: none; }
+        .sync-status.show { display: block; }
+        .sync-status.syncing { background: #f39c12; }
+        .sync-status.success { background: #27ae60; }
+        .sync-status.error { background: #e74c3c; }
         
         .progress-card { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 16px; padding: 16px; color: white; margin-bottom: 16px; }
         .progress-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
@@ -100,8 +115,6 @@
         .btn-download { background: white; color: var(--primary); border: 2px solid var(--primary); }
         .btn-download.downloaded { background: #4CAF50; color: white; border-color: #4CAF50; }
         .btn-gold { background: gold; color: #000; }
-        .btn-warning { background: #ff9800; color: white; }
-        .btn-success { background: #4CAF50; color: white; }
         
         .video-detail-card { background: white; border-radius: 16px; padding: 20px; box-shadow: var(--shadow); text-align: center; margin-bottom: 16px; }
         .video-detail-icon { font-size: 60px; margin-bottom: 12px; }
@@ -110,8 +123,13 @@
         .video-size-badge, .video-folder-tag { background: #f0f0f0; padding: 6px 14px; border-radius: 20px; display: inline-block; margin-bottom: 10px; font-size: 11px; }
         .video-folder-tag { background: #fff3e0; color: #e65100; }
         
-        .info-box { background: #e3f2fd; border-left: 4px solid #2196F3; border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 12px; color: #1565c0; text-align: left; }
-        .info-box strong { display: block; margin-bottom: 4px; font-size: 13px; }
+        #streamingPlayer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5000; display: none; flex-direction: column; }
+        #streamingPlayer.active { display: flex; }
+        .player-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; gap: 6px; }
+        .player-title { font-size: 13px; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
+        .player-btn { width: 34px; height: 34px; border: none; border-radius: 50%; background: rgba(255,255,255,0.2); color: white; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .player-container { flex: 1; width: 100%; position: relative; overflow: hidden; background: #000; }
+        .player-container iframe { width: 100%; height: 100%; border: none; }
         
         .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: white; padding: 10px 20px; border-radius: 50px; font-size: 13px; z-index: 9999; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; white-space: nowrap; pointer-events: none; max-width: 85%; overflow: hidden; text-overflow: ellipsis; }
         .toast.show { opacity: 1; visibility: visible; }
@@ -139,6 +157,14 @@
         @keyframes stickerUnlock { 0% { transform: scale(0) rotate(-180deg); } 50% { transform: scale(1.2); } 100% { transform: scale(1) rotate(0deg); } }
         
         .game-container { background: white; border-radius: 16px; padding: 20px; box-shadow: var(--shadow); text-align: center; }
+        .game-question { font-size: 24px; font-weight: bold; margin-bottom: 20px; color: var(--primary); }
+        .game-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+        .game-option { padding: 15px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 28px; cursor: pointer; transition: all 0.2s; background: white; }
+        .game-option:active { transform: scale(0.95); }
+        .game-option.correct { background: #2ecc71; border-color: #2ecc71; color: white; animation: correctPulse 0.5s; }
+        .game-option.wrong { background: #e74c3c; border-color: #e74c3c; color: white; animation: wrongShake 0.5s; }
+        @keyframes correctPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        @keyframes wrongShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
         .game-score { font-size: 18px; font-weight: bold; color: var(--primary); margin-top: 12px; }
         
         .certificate-container { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 20px; padding: 30px; text-align: center; color: white; margin-bottom: 16px; }
@@ -149,9 +175,7 @@
         .cert-stat { text-align: center; }
         .cert-stat-value { font-size: 36px; font-weight: bold; }
         .cert-stat-label { font-size: 12px; opacity: 0.9; }
-        
-        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-light); }
-        .empty-icon { font-size: 50px; margin-bottom: 12px; }
+        .certificate-date { font-size: 12px; opacity: 0.8; margin-top: 15px; }
         
         @media (min-width: 500px) { .category-grid { grid-template-columns: repeat(3, 1fr); } .app-content { max-width: 600px; margin: 0 auto; } }
     </style>
@@ -161,18 +185,24 @@
     <div id="lockScreen">
         <div class="lock-logo">📖</div>
         <div class="lock-title">Smart Hafiz</div>
-        <div class="lock-subtitle">Belajar Seru Setiap Hari! </div>
+        <div class="lock-subtitle">Belajar Seru Setiap Hari! 🌟</div>
         <input type="password" class="lock-input" id="lockPassword" placeholder="PIN (1234)" maxlength="6" inputmode="numeric">
         <button class="lock-btn" onclick="enterApp()">🔓 Masuk</button>
         <div style="color: rgba(255,255,255,0.6); font-size: 11px; margin-top: 15px;">PIN: 1234</div>
     </div>
 
-    <div class="reward-badge" id="rewardBadge" style="display:none;">⭐ <span id="rewardPoints">0</span> Poin</div>
+    <div class="sync-status" id="syncStatus">
+        <span id="syncStatusText">🔄 Syncing...</span>
+    </div>
+
+    <div class="reward-badge" id="rewardBadge" style="display:none;">
+        ⭐ <span id="rewardPoints">0</span> Poin
+    </div>
 
     <div id="mainApp">
         <div class="app-header">
             <div class="header-left">
-                <div class="header-logo">📖</div>
+                <div class="header-logo"></div>
                 <div style="min-width: 0; flex: 1;">
                     <div class="header-title">Smart Hafiz</div>
                     <div class="header-subtitle" id="headerStatus">Belajar Seru!</div>
@@ -186,10 +216,23 @@
         <div class="app-content" id="appContent"></div>
         <div class="bottom-nav">
             <button class="nav-item active" onclick="navigateTo('home')" id="navHome"><span class="nav-icon">🏠</span><span class="nav-label">Beranda</span></button>
-            <button class="nav-item" onclick="navigateTo('category', {category: 'mengaji'})" id="navMengaji"><span class="nav-icon">📖</span><span class="nav-label">Mengaji</span></button>
+            <button class="nav-item" onclick="navigateTo('category', {category: 'mengaji'})" id="navMengaji"><span class="nav-icon"></span><span class="nav-label">Mengaji</span></button>
             <button class="nav-item" onclick="navigateTo('category', {category: 'cerita'})" id="navCerita"><span class="nav-icon">📚</span><span class="nav-label">Cerita</span></button>
             <button class="nav-item" onclick="navigateTo('rewards')" id="navRewards"><span class="nav-icon">🎁</span><span class="nav-label">Hadiah</span></button>
             <button class="nav-item" onclick="navigateTo('settings')" id="navSettings"><span class="nav-icon">⚙️</span><span class="nav-label">Lainnya</span></button>
+        </div>
+    </div>
+
+    <div id="streamingPlayer">
+        <div class="player-header">
+            <button class="player-btn" id="prevVideoBtn" style="display:none;" title="Sebelumnya">⏮️</button>
+            <div class="player-title" id="playerTitle">Judul Video</div>
+            <button class="player-btn" id="nextVideoBtn" style="display:none;" title="Selanjutnya">⏭️</button>
+            <button class="player-btn" onclick="toggleFullscreen()" title="Fullscreen"></button>
+            <button class="player-btn" onclick="closePlayer()" title="Tutup">✕</button>
+        </div>
+        <div class="player-container">
+            <iframe id="playerIframe" allowfullscreen allow="autoplay; encrypted-media"></iframe>
         </div>
     </div>
 
@@ -201,7 +244,6 @@
         let stickerCollection = JSON.parse(localStorage.getItem('stickerCollection') || '[]');
         let gameHighScore = parseInt(localStorage.getItem('gameHighScore') || '0');
         let premiumUnlocked = localStorage.getItem('premiumUnlocked') === 'true';
-        let watchedVideos = JSON.parse(localStorage.getItem('watchedVideos') || '[]');
         
         const REWARDS_LIST = [
             { id: 'sticker_pack', name: '🎨 Paket Stiker Premium', points: 50, icon: '🎨', description: 'Dapatkan 5 stiker eksklusif', type: 'sticker' },
@@ -214,7 +256,7 @@
             const reward = REWARDS_LIST.find(r => r.id === rewardId);
             if (!reward) return;
             if (claimedRewards.includes(rewardId)) { showToast('⚠️ Anda sudah pernah menukar hadiah ini!'); return; }
-            if (hafizPoints < reward.points) { showToast(' Poin tidak cukup! Butuh ' + reward.points + ' poin'); return; }
+            if (hafizPoints < reward.points) { showToast('❌ Poin tidak cukup! Butuh ' + reward.points + ' poin'); return; }
             
             if (confirm(`Tukar ${reward.points} poin untuk "${reward.name}"?`)) {
                 hafizPoints -= reward.points;
@@ -231,7 +273,7 @@
         function giveReward(reward) {
             switch(reward.type) {
                 case 'sticker':
-                    const newStickers = ['🌟', '🕌', '', '🤲', '🌙'];
+                    const newStickers = ['🌟', '🕌', '📖', '🤲', '🌙'];
                     newStickers.forEach(sticker => { if (!stickerCollection.includes(sticker)) stickerCollection.push(sticker); });
                     localStorage.setItem('stickerCollection', JSON.stringify(stickerCollection));
                     break;
@@ -241,7 +283,9 @@
             }
         }
 
-        function playMiniGame() { showToast('🎮 Game segera hadir! Skor tertinggi: ' + gameHighScore); }
+        function playMiniGame() {
+            showToast('🎮 Game segera hadir! Skor tertinggi: ' + gameHighScore);
+        }
 
         function downloadCertificate() {
             const certText = `SERTIFIKAT HAFIZ\n\nDiberikan kepada:\n${userName}\n\nTelah menyelesaikan:\n${videosWatched} video\n${hafizPoints} poin\n\nSmart Hafiz 2024`;
@@ -252,20 +296,14 @@
             a.download = `Sertifikat_${userName.replace(/\s+/g, '_')}.txt`;
             a.click();
             window.URL.revokeObjectURL(url);
-            showToast('📥 Sertifikat berhasil didownload!');
+            showToast(' Sertifikat berhasil didownload!');
         }
 
-        function claimVideoPoints(driveId, title) {
-            if (watchedVideos.includes(driveId)) {
-                showToast('ℹ️ Poin untuk video ini sudah pernah diklaim!');
-                return;
-            }
-            watchedVideos.push(driveId);
-            localStorage.setItem('watchedVideos', JSON.stringify(watchedVideos));
-            videosWatched++;
-            localStorage.setItem('videosWatched', videosWatched.toString());
-            addPoints(10);
-            showToast(`🎉 "${title}" selesai ditonton! +10 Poin`);
+        // ===== SUPABASE CONFIGURATION =====
+        const SUPABASE_CONFIG = { url: 'https://your-project.supabase.co', anonKey: 'your-anon-key', enabled: false };
+        let supabaseClient;
+        if (SUPABASE_CONFIG.enabled && typeof window.supabase !== 'undefined') {
+            supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
         }
 
         // ===== CONFIGURATION =====
@@ -323,12 +361,12 @@
 
         function getEmptyContent() {
             return {
-                mengaji: { title: 'MENGAJI YUK', icon: '📖', color: '#1a7a4c', totalVideos: 0, folders: {} },
+                mengaji: { title: 'MENGAJI YUK', icon: '', color: '#1a7a4c', totalVideos: 0, folders: {} },
                 cerita: { title: 'CERITA', icon: '📚', color: '#7b1fa2', totalVideos: 0, folders: {} },
-                lagu: { title: 'MENYANYI YUK', icon: '', color: '#e65100', totalVideos: 0, folders: {} },
+                lagu: { title: 'MENYANYI YUK', icon: '🎵', color: '#e65100', totalVideos: 0, folders: {} },
                 film: { title: 'FILM', icon: '🎬', color: '#c62828', totalVideos: 0, folders: {} },
                 akhlaq: { title: 'AKHLAQ TERPUJI', icon: '🌸', color: '#ad1457', totalVideos: 0, folders: {} },
-                pengetahuan: { title: 'PENGETAHUAN', icon: '🧠', color: '#1565c0', totalVideos: 0, folders: {} }
+                pengetahuan: { title: 'PENGETAHUAN', icon: '', color: '#1565c0', totalVideos: 0, folders: {} }
             };
         }
 
@@ -401,7 +439,7 @@
                 document.getElementById('mainApp').classList.add('active');
                 renderHome();
                 showToast(`🌟 Selamat datang, ${userName}!`);
-            } else { showToast(' PIN salah'); document.getElementById('lockPassword').value = ''; }
+            } else { showToast('❌ PIN salah'); document.getElementById('lockPassword').value = ''; }
         }
 
         function navigateTo(page, data) {
@@ -467,23 +505,23 @@
                     <div class="hero-stats">
                         <div class="hero-stat"><div class="hero-stat-value">⭐ ${hafizPoints}</div><div>Poin</div></div>
                         <div class="hero-stat"><div class="hero-stat-value">📖 Juz ${dailyJuz}</div><div>Hari Ini</div></div>
-                        <div class="hero-stat"><div class="hero-stat-value">🎬 ${videosWatched}</div><div>Video Selesai</div></div>
+                        <div class="hero-stat"><div class="hero-stat-value">🎬 ${videosWatched}</div><div>Video</div></div>
                     </div>
                 </div>
                 <div class="progress-card">
                     <div class="progress-title">📊 Progress Belajar Hari Ini</div>
                     <div class="progress-bar"><div class="progress-fill" style="width: ${progressPercent}%"></div></div>
-                    <div class="progress-text">${videosWatched} dari ${totalVideos} video ditonton sampai selesai (${Math.round(progressPercent)}%)</div>
+                    <div class="progress-text">${videosWatched} dari ${totalVideos} video ditonton (${Math.round(progressPercent)}%)</div>
                 </div>
                 <div class="feature-grid">
-                    <div class="feature-card" onclick="navigateTo('category', {category: 'mengaji'})"><div class="feature-icon" style="background:#1a7a4c;">📖</div><div class="feature-name">Mengaji</div></div>
-                    <div class="feature-card" onclick="navigateTo('category', {category: 'cerita'})"><div class="feature-icon" style="background:#7b1fa2;"></div><div class="feature-name">Cerita</div></div>
+                    <div class="feature-card" onclick="navigateTo('category', {category: 'mengaji'})"><div class="feature-icon" style="background:#1a7a4c;"></div><div class="feature-name">Mengaji</div></div>
+                    <div class="feature-card" onclick="navigateTo('category', {category: 'cerita'})"><div class="feature-icon" style="background:#7b1fa2;">📚</div><div class="feature-name">Cerita</div></div>
                     <div class="feature-card" onclick="navigateTo('rewards')"><div class="feature-icon" style="background:#f093fb;">🎁</div><div class="feature-name">Hadiah</div></div>
                     <div class="feature-card" onclick="showDailyJuz()"><div class="feature-icon" style="background:#667eea;">📅</div><div class="feature-name">Juz Harian</div></div>
                 </div>
                 <div class="category-section">
                     <div class="section-title">🎓 Menu Belajar</div>
-                    <div class="category-grid">${categoryHTML || '<div class="empty-state"><div class="empty-icon"></div><p>Belum ada data. Klik 🔄 untuk sync.</p></div>'}</div>
+                    <div class="category-grid">${categoryHTML || '<div class="empty-state"><div class="empty-icon">📦</div><p>Belum ada data. Klik 🔄 untuk sync.</p></div>'}</div>
                 </div>
                 <div class="debug-panel">
                     <strong>📊 Debug:</strong> ${totalVideos} video • ${totalFolders} folder<br>
@@ -492,7 +530,7 @@
                 </div>`;
         }
 
-        function showDailyJuz() { showToast(` Hari ini: Juz ${dailyJuz} dari 30`); addPoints(5); }
+        function showDailyJuz() { showToast(`📖 Hari ini: Juz ${dailyJuz} dari 30`); addPoints(5); }
 
         function renderCategory(categoryKey) {
             const category = CONTENT[categoryKey];
@@ -503,11 +541,11 @@
             let foldersHTML = folderNames.length > 0 ? folderNames.map((folderName) => {
                 const folder = folders[folderName];
                 return `<div class="folder-item" onclick="navigateTo('folder', {category: '${categoryKey}', folder: '${folderName.replace(/'/g, "\\'")}'})">
-                    <div class="folder-icon">📁</div>
+                    <div class="folder-icon"></div>
                     <div class="folder-text"><div class="folder-name">${folderName}</div><div class="folder-count">${folder.items.length} video</div></div>
                     <span style="font-size: 16px; color: var(--text-light);">›</span>
                 </div>`;
-            }).join('') : `<div class="empty-state"><div class="empty-icon">📭</div><p>Belum ada folder. Klik  untuk sync.</p></div>`;
+            }).join('') : `<div class="empty-state"><div class="empty-icon">📭</div><p>Belum ada folder. Klik 🔄 untuk sync.</p></div>`;
 
             document.getElementById('appContent').innerHTML = `
                 <button class="back-btn" onclick="goBack()">← Kembali</button>
@@ -524,11 +562,10 @@
             
             let videosHTML = items.map((item) => {
                 const isSaved = downloadedVideos.includes(item.driveId);
-                const isWatched = watchedVideos.includes(item.driveId);
                 return `<div class="video-item" onclick="navigateTo('videoDetail', {category: '${categoryKey}', folder: '${folderName.replace(/'/g, "\\'")}', itemId: '${item.id}'})">
-                    <div class="video-thumb" style="background:${category.color || '#1a7a4c'};">🎬</div>
+                    <div class="video-thumb" style="background:${category.color || '#1a7a4c'};"></div>
                     <div class="video-text">
-                        <div class="video-title">${item.name} ${isWatched ? '<span class="badge badge-downloaded">✓</span>' : '<span class="badge badge-online">Online</span>'}</div>
+                        <div class="video-title">${item.name} ${isSaved ? '<span class="badge badge-downloaded">✓</span>' : '<span class="badge badge-online">Online</span>'}</div>
                         <div class="video-meta">${item.size || ''}</div>
                     </div>
                     <span style="font-size: 16px; color: var(--text-light);">›</span>
@@ -550,7 +587,6 @@
             if (!item) return;
 
             const isSaved = downloadedVideos.includes(item.driveId);
-            const isWatched = watchedVideos.includes(item.driveId);
             const driveId = item.driveId;
             const safeName = item.name.replace(/'/g, "\\'");
             const safeFolder = folderName.replace(/'/g, "\\'");
@@ -561,54 +597,52 @@
                 <div class="video-detail-card">
                     <div class="video-detail-icon">🎬</div>
                     <h3 class="video-detail-title">${item.name}</h3>
-                    <div class="video-folder-tag">📁 ${item.folder || folderName}</div>
+                    <div class="video-folder-tag"> ${item.folder || folderName}</div>
                     <p class="video-detail-desc">${item.desc || 'Video edukasi Islami'}</p>
                     ${item.size ? `<div class="video-size-badge">📦 ${item.size}</div>` : ''}
-                    
-                    ${isWatched ? '<div style="background:#e8f5e9; color:#2e7d32; padding:10px; border-radius:8px; margin-bottom:10px; font-size:13px; font-weight:600;">✅ Video ini sudah ditonton</div>' : ''}
-                    
-                    <button class="btn-action btn-warning" onclick="openAndClaim('${driveId}', '${safeName}')" style="font-size: 16px; padding: 16px;">
-                        🌐 BUKA VIDEO DI TAB BARU (Terjernih!)
-                    </button>
-                    
-                    <div class="info-box">
-                        <strong>💡 Kenapa Buka di Tab Baru?</strong>
-                        Video di Google Drive memiliki kontrol bawaan yang tidak bisa dihilangkan. 
-                        Dengan membuka di tab baru, Anda mendapat pengalaman menonton terbaik dengan layar penuh dan tanpa gangguan!
-                    </div>
-                    
-                    ${!isWatched ? `<button class="btn-action btn-success" onclick="markAsWatched('${driveId}', '${safeName}')" style="margin-top: 8px;">
-                        ✅ Tandai Sudah Ditonton (+10 Poin)
-                    </button>` : ''}
-                    
-                    <button class="btn-action btn-secondary" onclick="downloadVideo('${driveId}', '${safeName}')">️ Download</button>
+                    <button class="btn-action btn-primary" onclick="streamVideo('${driveId}', '${safeName}', '${categoryKey}', '${safeFolder}', '${item.id}')">▶️ Streaming Langsung (Lanskap)</button>
+                    <button class="btn-action btn-secondary" onclick="downloadVideo('${driveId}', '${safeName}')">⬇️ Download</button>
                     <button class="btn-action btn-download ${isSaved ? 'downloaded' : ''}" onclick="${isSaved ? `deleteVideo('${driveId}', '${safeName}', '${categoryKey}', '${safeFolder}')` : `addToDownloadedList('${driveId}', '${safeName}')`}">${isSaved ? '✓ Tersimpan (Hapus)' : '📥 Simpan ke Daftar'}</button>
                 </div>`;
         }
 
-        function openAndClaim(driveId, title) {
-            window.open(`https://drive.google.com/file/d/${driveId}/preview`, '_blank');
-            showToast(' Video dibuka di tab baru! Tonton sampai selesai ya!');
+        function streamVideo(driveId, title, categoryKey, folderName, itemId) {
+            document.getElementById('playerTitle').textContent = title;
+            document.getElementById('playerIframe').src = `https://drive.google.com/file/d/${driveId}/preview`;
             
-            setTimeout(() => {
-                if (!watchedVideos.includes(driveId)) {
-                    if (confirm(`Apakah Anda sudah selesai menonton "${title}"?\n\nKlik OK untuk klaim +10 poin!`)) {
-                        claimVideoPoints(driveId, title);
-                    }
-                }
-            }, 3000);
+            const category = CONTENT[categoryKey];
+            if (category && category.folders && category.folders[folderName]) {
+                const items = category.folders[folderName].items;
+                const currentIndex = items.findIndex(i => i.id === itemId);
+                const prevBtn = document.getElementById('prevVideoBtn');
+                const nextBtn = document.getElementById('nextVideoBtn');
+                
+                if (currentIndex > 0) { const prevItem = items[currentIndex - 1]; prevBtn.style.display = 'flex'; prevBtn.onclick = () => streamVideo(prevItem.driveId, prevItem.name, categoryKey, folderName, prevItem.id); }
+                else prevBtn.style.display = 'none';
+                
+                if (currentIndex < items.length - 1) { const nextItem = items[currentIndex + 1]; nextBtn.style.display = 'flex'; nextBtn.onclick = () => streamVideo(nextItem.driveId, nextItem.name, categoryKey, folderName, nextItem.id); }
+                else nextBtn.style.display = 'none';
+            }
+            
+            document.getElementById('streamingPlayer').classList.add('active');
+            setTimeout(() => { const iframe = document.getElementById('playerIframe'); if (iframe.requestFullscreen) iframe.requestFullscreen().catch(() => {}); else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen(); }, 300);
+            
+            videosWatched++;
+            localStorage.setItem('videosWatched', videosWatched.toString());
+            addPoints(10);
         }
 
-        function markAsWatched(driveId, title) {
-            if (watchedVideos.includes(driveId)) {
-                showToast('ℹ️ Video ini sudah pernah ditandai selesai!');
-                return;
-            }
-            
-            if (confirm(`Tandai "${title}" sebagai sudah ditonton?\n\nAnda akan mendapat +10 poin!`)) {
-                claimVideoPoints(driveId, title);
-                showVideoDetail(currentCategory, currentFolder, CONTENT[currentCategory].folders[currentFolder].items.find(i => i.driveId === driveId).id);
-            }
+        function closePlayer() {
+            document.getElementById('playerIframe').src = '';
+            document.getElementById('streamingPlayer').classList.remove('active');
+            document.getElementById('prevVideoBtn').style.display = 'none';
+            document.getElementById('nextVideoBtn').style.display = 'none';
+            if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+        }
+
+        function toggleFullscreen() {
+            if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+            else { const iframe = document.getElementById('playerIframe'); if (iframe.requestFullscreen) iframe.requestFullscreen(); else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen(); }
         }
 
         function downloadVideo(driveId, name) { window.open(`https://drive.google.com/uc?export=download&id=${driveId}`, '_blank'); addToDownloadedList(driveId, name); }
@@ -626,7 +660,7 @@
             if (confirm(`Hapus "${name}"?`)) {
                 downloadedVideos = downloadedVideos.filter(id => id !== driveId);
                 localStorage.setItem('downloadedVideos', JSON.stringify(downloadedVideos));
-                showToast('🗑️ Dihapus');
+                showToast('️ Dihapus');
                 const item = CONTENT[categoryKey]?.folders[folderName]?.items.find(i => i.driveId === driveId);
                 if (item) showVideoDetail(categoryKey, folderName, item.id);
             }
@@ -662,7 +696,7 @@
             
             let certSection = '';
             if (claimedRewards.includes('certificate')) {
-                certSection = `<div class="certificate-container"><div class="certificate-title">SERTIFIKAT HAFIZ</div><div class="certificate-subtitle">Diberikan kepada</div><div class="certificate-name">${userName}</div><div class="certificate-stats"><div class="cert-stat"><div class="cert-stat-value">${videosWatched}</div><div class="cert-stat-label">Video Selesai</div></div><div class="cert-stat"><div class="cert-stat-value">${hafizPoints}</div><div class="cert-stat-label">Poin</div></div></div><button class="btn-action btn-secondary" onclick="downloadCertificate()">📥 Download Sertifikat</button></div>`;
+                certSection = `<div class="certificate-container"><div class="certificate-title">SERTIFIKAT HAFIZ</div><div class="certificate-subtitle">Diberikan kepada</div><div class="certificate-name">${userName}</div><div class="certificate-stats"><div class="cert-stat"><div class="cert-stat-value">${videosWatched}</div><div class="cert-stat-label">Video</div></div><div class="cert-stat"><div class="cert-stat-value">${hafizPoints}</div><div class="cert-stat-label">Poin</div></div></div><button class="btn-action btn-secondary" onclick="downloadCertificate()">📥 Download Sertifikat</button></div>`;
             }
             
             document.getElementById('appContent').innerHTML = `
@@ -672,18 +706,18 @@
                     <div class="hero-greeting">Poin Kamu</div>
                     <div class="hero-name" style="font-size: 36px;">⭐ ${hafizPoints}</div>
                     <div class="hero-stats">
-                        <div class="hero-stat"><div class="hero-stat-value">🎬 ${videosWatched}</div><div>Video Selesai</div></div>
+                        <div class="hero-stat"><div class="hero-stat-value">🎬 ${videosWatched}</div><div>Video</div></div>
                         <div class="hero-stat"><div class="hero-stat-value">🏆 ${claimedRewards.length}</div><div>Hadiah</div></div>
                     </div>
                 </div>
                 <div class="settings-group">
                     <div style="padding: 14px 16px; background: #f0f0f0; font-size: 13px; font-weight: 600;">🎯 Cara Dapat Poin:</div>
-                    <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e8f5e9;">🎬</div><div class="settings-item-text"><h4>Tonton Video Sampai Selesai</h4><p>+10 poin (Klik "Tandai Sudah Ditonton")</p></div></div></div>
+                    <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e8f5e9;">🎬</div><div class="settings-item-text"><h4>Tonton Video</h4><p>+10 poin setiap video</p></div></div></div>
                     <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd;">💾</div><div class="settings-item-text"><h4>Download Video</h4><p>+5 poin setiap download</p></div></div></div>
-                    <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0;"></div><div class="settings-item-text"><h4>Juz Harian</h4><p>+5 poin setiap cek juz</p></div></div></div>
+                    <div class="settings-item"><div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0;">📅</div><div class="settings-item-text"><h4>Juz Harian</h4><p>+5 poin setiap cek juz</p></div></div></div>
                 </div>
                 <div class="settings-group">
-                    <div style="padding: 14px 16px; background: #f0f0f0; font-size: 13px; font-weight: 600;"> Tukar Poin:</div>
+                    <div style="padding: 14px 16px; background: #f0f0f0; font-size: 13px; font-weight: 600;">🎁 Tukar Poin:</div>
                     ${rewardsHTML}
                 </div>
                 ${stickerSection}
@@ -699,18 +733,17 @@
                     <div class="settings-item" onclick="promptUserName()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd;">👤</div><div class="settings-item-text"><h4>Nama Anak</h4><p>${userName}</p></div></div><span>›</span></div>
                     <div class="settings-item" onclick="manualSync()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#fff3e0; color:#e65100;">🔄</div><div class="settings-item-text"><h4>Manual Sync</h4><p>Ambil data dari Drive</p></div></div><span>›</span></div>
                     <div class="settings-item" onclick="clearAllCache()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#ffebee; color:#c62828;">🗑️</div><div class="settings-item-text"><h4>Clear Cache</h4><p>Hapus data lokal</p></div></div><span>›</span></div>
-                    <div class="settings-item" onclick="resetProgress()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd; color:#1565c0;">🔄</div><div class="settings-item-text"><h4>Reset Progress</h4><p>Reset poin & video</p></div></div><span>›</span></div>
+                    <div class="settings-item" onclick="resetProgress()"><div class="settings-item-left"><div class="settings-item-icon" style="background:#e3f2fd; color:#1565c0;"></div><div class="settings-item-text"><h4>Reset Progress</h4><p>Reset poin & video</p></div></div><span>›</span></div>
                 </div>
-                <div style="text-align:center; padding:14px; color:var(--text-light); font-size:10px;">Smart Hafiz v18.0<br>Belajar Seru Setiap Hari!<br>© 2024</div>`;
+                <div style="text-align:center; padding:14px; color:var(--text-light); font-size:10px;">Smart Hafiz v11.0<br>Belajar Seru Setiap Hari!<br>© 2024</div>`;
         }
 
         function promptUserName() { const newName = prompt('Masukkan nama anak:', userName); if (newName && newName.trim()) { userName = newName.trim(); localStorage.setItem('userName', userName); showToast(`✅ Nama diubah menjadi ${userName}`); renderSettings(); } }
 
         function resetProgress() {
             if (confirm('Reset semua progress? Poin akan kembali ke 0.')) {
-                hafizPoints = 0; videosWatched = 0; watchedVideos = []; dailyJuz = 1;
-                localStorage.setItem('hafizPoints', '0'); localStorage.setItem('videosWatched', '0'); 
-                localStorage.setItem('watchedVideos', '[]'); localStorage.setItem('dailyJuz', '1');
+                hafizPoints = 0; videosWatched = 0; dailyJuz = 1;
+                localStorage.setItem('hafizPoints', '0'); localStorage.setItem('videosWatched', '0'); localStorage.setItem('dailyJuz', '1');
                 updateRewardBadge(); showToast('🔄 Progress direset'); renderHome();
             }
         }
